@@ -1,0 +1,632 @@
+#!/bin/bash
+#
+##########################################################################
+# Copyright 2015 welpo
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##########################################################################
+
+############################# BEGIN CONFIGURATION #############################
+
+# Local directory where files will be stored (should be inside your public_html folder):
+# Do NOT use a trailing slash
+localdir="${HOME}"/www/"$(whoami)"."$(hostname -f)"/public_html/nani
+
+# URL format (example: https://yoursite.com/nani/)
+# Do NOT use a trailing slash
+urlformat=https://"$(hostname -f)"/"$(whoami)"/nani
+
+# Create hard links instead of new copies? Default is 1 (Yes)
+# Can be reverted by using the -a, --alias flag.
+hardlink=1
+
+# Minimum number of characters for the output name. Default is 5.
+# Can be overriden by using the -l X or --length=X flag.
+minimum_length=5
+
+# Maximum number of extra characters the length will have.
+# The final length will be a number between length and length+random_length
+# Will be ignored if the -s or --string flag is used.
+# Can be left empty if you don't wish to randomise the length.
+random_length=2
+
+# Be quiet. If set to 1 it will only output the link. Default is 1 (be quiet).
+# You will want this to be set to 1 to integrate it with other software/scripts
+# Can be forced using the -q or --quiet flag
+quiet=1
+
+# Do you want to add .txt to files with no extension? Default is 1 (Yes).
+addtxt=1
+
+# Do you want to change the extension of files storing text (.php, .html, .tex...) to .txt? Default is 1 (Yes).
+modifytext=1
+
+# Do you want to transcode flac to MP3 V0? Default is 1 (Yes). Requires metaflac, flac and lame.
+# Setting can be reversed by using the -t or --transcode flag
+transcode=1
+
+# Use xclip to get the URL to your local clipboard if xclip is set up and you ran SSH with the -X flag. Default is 1 (Enabled).
+# You will want this to be set to 0 to integrate it with other software/scripts
+# Setting can be reversed by using the -x or --xclip flag
+xclip=1
+
+# Do you want to use push notifications?
+# Using the -p or --push flag will force them.
+# Remember to set the service's tokens/keys below for them to work.
+push=0
+
+# Your Pushbullet access token https://www.pushbullet.com/account Leave empty if you don't want to use Pushbullet.
+pushbullettoken=
+
+# Your Pushover key https://pushover.net/ Leave empty if you don't want to use Pushover.
+pushoverkey=
+
+############################## END CONFIGURATION ##############################
+
+# Create random string of characters (upper and lowercase + numbers) for the output filename
+random ()
+{
+  # Set the final string length if random_length is set and setlength is not (the latter will be =1 when -s or --string flag is used)
+  if [[ -n "$random_length" && -z "$setlength" ]]; then
+    addlength=$(( ( RANDOM % $random_length )  + 1 ))
+    length=$(($addlength + $minimum_length))
+  else
+    length="$minimum_length"
+  fi
+
+  # Set length to use X to make it work with mktemp
+  printf -v letters '%*s' $length ' ' ; letters="${letters// /X}"
+
+  # If we want a random name...
+  if [[ -z "$preservename" || -z "$oname" ]]; then
+      oname="$(mktemp "$localdir"/"$letters""$ext")" || continue
+      oname="${oname##*/}"
+      oname="${oname%.*}"
+  else
+    # If we don't want a random name, check oname isn't set (-n, -o)
+    if [ -z "$oname" ]; then
+      # Store basename
+      bname=$(basename "$input")
+      if [[ -d "$input" || -h "$input" ]]; then
+        # Keep the whole thing if it is a directory
+        oname="$bname"
+      else
+        # Only keep name, not extension, when it's not a directory. handle dotfiles
+        if [[ "$oname" == "${bname%.*}" ]]; then
+          oname="$bname"
+        else
+          oname="${bname%.*}"
+        fi
+      fi
+    fi
+
+    # If -n, --name, -o or --original were used check output name doesn't exist on /nani/
+    # If it does exist, prepend a random string of 5 characters (default, can be changed by adding or removing X's in the mktemp line)
+    if [[ -e "$localdir"/"$prename""${oname// /_}""$ext" ]]; then
+      oname="$(mktemp "$localdir"/XXXXX"$oname""$ext")" || continue
+      oname="${oname##*/}"
+      oname="${oname%.*}"
+    fi
+    # Truncate spaces for underscores
+    oname="${oname// /_}"
+  fi
+}
+
+# Creates copy (hard link, symbolic link or just cp) to input file in /nani/
+copy ()
+{
+  if [[ "$hardlink" == 1 ]]; then
+    hard_link_arg="l"
+  fi
+  # -l to save space (hard link) and -f to overwrite the mktemp file
+  # symbolic link when using SSHFS or cp -l errors out (different mounts)
+  if [[ "$symbolic" == "1" ]]; then
+    ln -sf "$(realpath "$input")" "$localdir"/"$oname""$ext"
+  else
+    cp -f$hard_link_arg "$input" "$localdir"/"$oname""$ext"
+  fi
+}
+
+# Provides URL to output file
+share ()
+{
+  url="$urlformat"/"$oname""$ext"
+  # Add trailing slash to URL if it created a symbolic link and is missing
+  if [[ "$content" == *"directory"* && "$symbolic" = "1" && "$url" != */ ]]; then
+    url="$url"/
+  fi
+  # Send URL to push notification services
+  if [ "$push" = 1 ]; then
+    if [[ -n "$pushbullettoken" ]]; then
+      curl -s --header 'Authorization: Bearer '$pushbullettoken'' -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "link", "title": "'"$input"\ \("$oname""$ext"\)'", "body": "'"$url"'", "url": "'"$url"'"}' > /dev/null
+    fi
+    if [[ -n "$pushoverkey" ]]; then
+      curl -s \
+        --form-string "token=ajcRHNs9uX3wv2AQiypwcw8sKamrYH" \
+        --form-string "user=$pushoverkey" \
+        --form-string "message=$input ($oname$ext)" \
+        --form-string "url=$url" \
+        --form-string "url_title=$oname$ext" \
+        https://api.pushover.net/1/messages.json > /dev/null
+    fi
+  fi
+  echo "$url"
+  # Add url to array to send it to clipboard at the end
+  urllist+=( "$url" )
+}
+
+clipboard ()
+{
+  # Get links to clipboard depending on the OS
+  system="$(uname -s)"
+
+  # If xclip is installed, and you started ssh with "-X", the following line would get the URL on your local clipboard
+  if [[ -f /usr/bin/xclip ]] && [[ ! -z "$DISPLAY" ]] && [[ "$xclip" == 1 ]]; then
+    { IFS=$'\n'; printf %s "${urllist[*]}"; } | xclip -selection c
+  fi
+  # Windows running Cygwin
+  if [[ "$system" == *"CYGWIN"* ]]; then
+    { IFS=$'\n'; printf %s "${urllist[*]}"; } > /dev/clipboard
+  fi
+
+  # For OSX
+  if [[ "$system" == *"Darwin"* ]]; then
+    { IFS=$'\n'; printf %s "${urllist[*]}"; } | pbcopy
+  fi
+}
+
+# Remove all files on /nani/ except index.html and the /k/ directory (permanent nani)
+cleanup ()
+{
+  find "$localdir"/ -mindepth 1 ! -name "index.html" ! -name "k" ! -path '*/k/*' -delete
+}
+
+# Reset variables. Necessary for when it handles more than 1 file as argument
+cleanvar ()
+{
+  oname="$chosenname"
+  addlength=
+  bname=
+  prename=
+  inode=
+  ext=
+}
+
+# Display help
+showhelp ()
+{
+  echo
+  echo "Usage: nani [options] <infile>"
+  echo "Provides public URL from input."
+  echo
+  echo "Input handling:"
+  echo "    Directory                       Will be stored using zip (or symbolic link)"
+  echo "    FLAC                            Can be transcoded to MP3"
+  echo "    Text (html, php...)             Extension can be set to .txt"
+  echo "    Other files                     New copy/hard link/symbolic link at output directory"
+  echo "    URL to video (e.g: youtube)     Downloaded using youtube-dl"
+  echo "    Other URLs                      Downloaded using wget"
+  echo
+  echo "Modify the first lines of the script to change how nani behaves: quiet mode,"
+  echo "enabling/disabling transcoding, length of the string, extension truncation..."
+  echo
+  echo "Settings and options:"
+  echo "    -a, --alias      Revert the hard link setting"
+  echo "    -c, --cleanup    Remove all files on /nani/ except index.html"
+  echo "    -h, --help       Display this help and exit"
+  echo "    -i, --insert     Open nano to enter text. Saved in output directory as .txt"
+  echo "    -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules"
+  echo "    -l, --list       List files in output directory /nani/"
+  echo "    -n, --name=      Use custom name (e.g. nani -n DesiredName <file>)"
+  echo "    -o, --original   Preserve original file name"
+  echo "    -p, --push       Send push notification"
+  echo "    -q, --quiet      Force quiet mode"
+  echo "    -s, --string=    Force a certain string length (e.g. nani -s 32 <file>)"
+  echo "    -t, --transcode  Revert the transcode setting"
+  echo "    -x, --xclip      Revert the xclip setting"
+  echo "    -y, --symbolic   Create a symbolic link for files and directories"
+  echo
+}
+
+while :; do
+  case $1 in
+    -a|--alias)
+      hardlink=$((!hardlink))
+      ;;
+    -c|--cleanup)
+      echo "Cleaning up..."
+      cleanup
+      echo Done.
+      exit
+      ;;
+    -h|-\?|--help)   # Call a "showhelp" function to display a synopsis, then exit.
+      showhelp
+      exit
+      ;;
+    -i|--insert)
+      insert_mode="1"
+      ;;
+    -k|--keep)
+      localdir+="/k"
+      urlformat+="/k"
+      shift 1
+      continue
+      ;;
+    -l|--list)
+      printf "Files in $localdir/:\n\n"
+      ls --color=auto "$localdir"
+      ext=".zip"
+      printf '\nRun nani -c or nani --cleanup to remove all files except index.html\n'
+      exit
+      ;;
+    --name=?*)
+      oname=${1#*=} # Delete everything up to "=" and assign the remainder.
+      chosenname=${1#*=} # Delete everything up to "=" and assign the remainder.
+      preservename=1
+      ;;
+    --name=)         # Handle the case of an empty --name=
+      printf 'ERROR: "--name" requires a non-empty option argument.\n' >&2
+      exit 1
+      ;;
+    -n)       # Takes an option argument, ensuring it has been specified.
+      if [[ -n "$2" ]]; then
+        oname=$2
+        chosenname=$2
+        preservename=1
+        shift 2
+        continue
+      else
+        printf 'ERROR: "-n" requires a non-empty option argument.\n' >&2
+        exit 1
+      fi
+      ;;
+    -o|--original)
+      preservename=1
+      ;;
+    -p|--push)
+      push=1
+      ;;
+    -q|--quiet)
+      quiet=1
+      ;;
+    -s)       # Takes an option argument, ensuring it has been specified.
+      if [[ -n "$2" ]]; then
+        setlength=1
+        minimum_length="$2"
+        shift 2
+        continue
+      else
+        printf 'ERROR: "-s" requires a non-empty option argument.\n' >&2
+        exit 1
+      fi
+      ;;
+    --string=?*)
+      minimum_length=${1#*=} # Delete everything up to "=" and assign the remainder.
+      setlength=1
+      ;;
+    --string=)         # Handle the case of an empty --length=
+      printf 'ERROR: "--string" requires a non-empty option argument.\n' >&2
+      exit 1
+      ;;
+    -t|--transcode)
+      transcode=$((!transcode))
+      ;;
+    -x|--xclip)
+      xclip=$((!xclip))
+      ;;
+    -y|--symbolic)
+      symbolic=1
+      ;;
+    -?*)
+      # This below allows for grouped options, example: nani -xot File1
+      if [[ "${#1}" -ge "3" && ${1:1:1} != "-" ]]; then
+        for (( i=1; i<${#1}; i++ )); do
+          if [[ "${1:$i:1}" == "a" ]]; then
+            hardlink=$((!hardlink))
+            continue
+          fi
+          if [[ "${1:$i:1}" == "i" ]]; then
+            insert_mode="1"
+            continue
+          fi
+          if [[ "${1:$i:1}" == "k" ]]; then
+            localdir+="/k"
+            urlformat+="/k"
+            continue
+          fi
+          if [[ "${1:$i:1}" == "o" ]]; then
+            preservename=1
+            continue
+          fi
+          if [[ "${1:$i:1}" == "p" ]]; then
+            push=1
+            continue
+          fi
+          if [[ "${1:$i:1}" == "q" ]]; then
+            quiet=1
+            continue
+          fi
+          if [[ "${1:$i:1}" == "t" ]]; then
+            transcode=$((!transcode))
+            continue
+          fi
+          if [[ "${1:$i:1}" == "x" ]]; then
+            xclip=$((!xclip))
+            continue
+          fi
+          if [[ "${1:$i:1}" == "y" ]]; then
+            symbolic=1
+            continue
+          fi
+          ignored_options="$ignored_options""${1:$i:1}"
+          continue
+        done
+        if [[ -n "$ignored_options" ]]; then
+          printf 'WARN: Unknown options (ignored): %s\n' "$ignored_options" >&2
+        fi
+      else
+        printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+      fi
+      shift 1
+      continue
+      ;;
+    --)              # End of all options.
+      shift
+      break
+      ;;
+    *)               # Default case: If no more options then break out of the loop.
+      break
+  esac
+  shift
+done
+
+# Create the directory where the files will go, in your public folder
+mkdir -p "$localdir" || exit
+
+# Create index.html in the output folder, to avoid directory listing
+if ! [[ -a "$localdir"/index.html ]]; then
+  #touch "$localdir"/index.html
+  echo "<html><meta charset="utf-8"><head><title>何これ?</title></head><body><div align=center><h1>nani kore!?</h1></div></body></html>" > "$localdir"/index.html
+fi
+
+# Check settings have valid values
+# Checking $length is an integer and is between 1 and 250
+if ! [[ "$minimum_length" =~ ^[0-9]+$ ]]; then
+  echo "length value is \"$length\", which is not an integer."
+  echo "Fix it and try again."
+  exit 1
+fi
+if ! [[ "$minimum_length" -ge 1 && "$length" -le 250 ]]; then
+  echo "The value set for length is not valid."
+  echo "It must be a number between 1 and 250."
+  exit 1
+fi
+
+# Checking $random_length is an integer and is between 1 and 250
+if [[ -n "$random_length" ]]; then
+  if ! [[ "$random_length" =~ ^[0-9]+$ ]]; then
+    echo "random_length value is \"$random_length\", which is not an integer."
+    echo "Fix it and try again."
+    exit 1
+  fi
+  if ! [[ "$random_length" -ge 1 && "$random_length" -le 250 ]]; then
+    echo "The value set for random_length is not valid."
+    echo "It must be a number between 1 and 250."
+    exit 1
+  fi
+fi
+
+# Checking if $pushbulletkey is valid
+if [[ -n "$pushbulletkey" ]]; then
+  if  ! [[ "$pushbulletkey" =~ ^[a-zA-Z0-9]+$ ]]; then
+    echo "The value set for \$pushbulletkey is not valid. Fix it or leave it empty."
+    exit 1
+  fi
+fi
+
+# Checking if $pushoverkey is valid
+if [[ -n "$pushoverkey" ]]; then
+  if  ! [[ "$pushoverkey" =~ ^[a-zA-Z0-9]+$ ]]; then
+    echo "The value set for \$pushoverkey is not valid. Fix it or leave it empty."
+    exit 1
+  fi
+fi
+
+# Checking if $quiet is either 0 or 1
+if [[ $quiet != [01] ]]; then
+  echo "The value set for quiet is not valid. It must be either 1 or 0."
+  exit 1
+fi
+
+# Checking if $addtxt is an integer and either 0 or 1
+if [[ $addtxt != [01] ]]; then
+  echo "The value set for addtxt is not valid. It must be either 1 or 0"
+  exit 1
+fi
+
+# Checking if $modifytext is an integer and either 0 or 1
+if [[ $modifytext != [01] ]]; then
+  echo "The value set for modifytext is not valid. It must be either 1 or 0."
+  exit 1
+fi
+
+# Checking if $transcode is an integer and either 0 or 1
+if [[ $transcode != [01] ]]; then
+  echo "The value set for \$transcode is not valid. It must be either 0 or 1."
+  exit 1
+fi
+
+# Checking if $xclip is an integer and either 0 or 1
+if [[ $xclip != [01] ]]; then
+  echo "The value set for \$xclip is not valid. It must be either 0 or 1."
+  exit 1
+fi
+
+# Insert mode:
+if [[ "$insert_mode" == 1 ]]; then
+  ext=.txt
+  random
+  nano -t "$localdir"/"$oname""$ext" || exit
+  #vim "$localdir"/"$oname""$ext"
+  #cat > "$localdir"/"$oname""$ext"
+  # Check output actually exists, just in case nano is closed before entering text
+  [[ ! -f "$localdir"/"$oname""$ext" ]] && exit 1
+  share
+  clipboard
+  exit
+fi
+
+# Check if input comes from stdin, if so, just cat input to /nani/
+if ! [[ -t 0 ]]; then
+  ext=".txt"
+  random
+  cat > "$localdir"/"$oname""$ext" || exit
+  share
+  clipboard
+  exit
+elif [[ "$#" -lt 1 ]]; then
+  printf "Usage:\n  nani [options] <infile>\n\nFor more information try\n  nani --help\n"
+  exit 1
+fi
+
+for input in "$@"; do
+  # Start with clean variables
+  cleanvar
+  # Check if input is valid (file/directory exists). If it doesn't, is it a URL?
+  if [[ ! -e "$input" ]]; then
+    if [[ "$input" == http?(s)://* ]]; then
+      # Chek if URL is from a site supported by youtube-dl, if it is, grab the file and output it to /nani/
+      if [[ "$input" == *@(.abc|.abc7news|.academicearth|.addanime|.adobetv|.adultswim|.aftenposten|.aftonbladet|.airmozilla|.aljazeera|.alphaporno|.anitube|.anysex|.aol|.allocine|.aparat|.appleconnect|.appletrailers|.archiveorg|.ard|.arte|.atresplayer|.atttechchannel|.audiomack|.azubu|.baidu|.bambuser|.bandcamp|.bbc|.beeg|.behindkink|.beatportpro|.bet|.bild|.bilibili|.blinkx|.bliptv|.bloomberg|.bpb|.br|.breakcom|.brightcove|.buzzfeed|.byutv|.c56|.camdemy|.canal13cl|.canalplus|.canalc2|.cbs|.cbsnews|.cbssports|.ccc|.ceskatelevize|.channel9|.chaturbate|.chilloutzone|.chirbit|.cinchcast|.cinemassacre|.clipfish|.cliphunter|.clipsyndicate|.cloudy|.clubic|.cmt|.cnet|.cnn|.collegehumor|.collegerama|.comedycentral|.comcarcoff|.commonmistakes|.condenast|.cracked|.criterion|.crooksandliars|.crunchyroll|.cspan|.ctsnews|.dailymotion|.daum|.dbtv|.dcn|.dctp|.deezer|.dfb|.dhm|.dotsub|.douyutv|.dramafever|.dreisat|.drbonanza|.drtuber|.drtv|.dvtv|.dump|.dumpert|.defense|.discovery|.dropbox|.eagleplatform|.ebaumsworld|.echomsk|.ehow|.eighttracks|.einthusan|.eitb|.ellentv|.elpais|.embedly|.engadget|.eporner|.eroprofile|.escapist|.espn|.esri|.europa|.everyonesmixtape|.exfm|.expotv|.extremetube|.facebook|.faz|.fc2|.fczenit|.firstpost|.firsttv|.fivemin|.fivetv|.fktv|.flickr|.folketinget|.footyroom|.fourtube|.foxgay|.foxnews|.foxsports|.franceculture|.franceinter|.francetv|.freesound|.freespeech|.freevideo|.funnyordie|.gamekings|.gameone|.gamersyde|.gamespot|.gamestar|.gametrailers|.gazeta|.gdcvault|.generic|.gfycat|.giantbomb|.giga|.glide|.globo|.godtube|.goldenmoustache|.golem|.googleplus|.googlesearch|.gorillavid|.goshgay|.groupon|.hark|.hearthisat|.heise|.hellporno|.helsinki|.hentaistigma|.historicfilms|.history|.hitbox|.hornbunny|.hotnewhiphop|.howcast|.howstuffworks|.huffpost|.hypem|.iconosquare|.ign|.imdb|.imgur|.ina|.indavideo|.infoq|.instagram|.internetvideoarchive|.iprima|.iqiyi|.ir90tv|.ivi|.izlesene|.jadorecettepub|.jeuxvideo|.jove|.jukebox|.jpopsukitv|.kaltura|.kanalplay|.kankan|.karaoketv|.karrierevideos|.keezmovies|.khanacademy|.kickstarter|.keek|.kontrtube|.krasview|.ku6|.kuwo|.la7|.laola1tv|.lecture2go|.letv|.libsyn|.lifenews|.limelight|.liveleak|.livestream|.lnkgo|.lrt|.lynda|.m6|.macgamestore|.mailru|.malemotion|.mdr|.metacafe|.metacritic|.mgoon|.minhateca|.ministrygrid|.miomio|.mit|.mitele|.mixcloud|.mlb|.mpora|.moevideo|.mofosex|.mojvideo|.moniker|.mooshare|.morningstar|.motherless|.motorsport|.movieclips|.moviezine|.movshare|.mtv|.muenchentv|.musicplayon|.muzu|.mwave|.myspace|.myspass|.myvi|.myvideo|.myvidster|.nationalgeographic|.naver|.nba|.nbc|.ndr|.ndtv|.netzkino|.nerdcubed|.nerdist|.neteasemusic|.newgrounds|.newstube|.nextmedia|.nfb|.nfl|.nhl|.niconico|.ninegag|.noco|.normalboots|.nosvideo|.nova|.novamov|.nowness|.nowtv|.nowvideo|.npo|.nrk|.ntvde|.ntvru|.nytimes|.nuvid|.odnoklassniki|.oktoberfesttv|.onionstudios|.ooyala|.orf|.parliamentliveuk|.patreon|.pbs|.periscope|.philharmoniedeparis|.phoenix|.photobucket|.pinkbike|.planetaplay|.pladform|.played|.playfm|.playtvak|.playvid|.playwire|.pluralsight|.podomatic|.porn91|.pornhd|.pornhub|.pornotube|.pornovoisines|.pornoxo|.primesharetv|.promptfile|.prosiebensat1|.puls4|.pyvideo|.qqmusic|.quickvid|.r7|.radiode|.radiojavan|.radiobremen|.radiofrance|.rai|.rbmaradio|.rds|.redtube|.restudy|.reverbnation|.ringtv|.ro220|.rottentomatoes|.roxwel|.rtbf|.rte|.rtlnl|.rtl2|.rtp|.rts|.rtve|.rtvnh|.ruhd|.rutube|.rutv|.ruutu|.sandia|.safari|.sapo|.saveimport SaveFromIE|.sbs|.scivee|.screencast|.screencastomatic|.screenwavemedia|.senateisvp|.servingsys|.sexu|.sexykarma|.shahid|.shared|.sharesix|.sina|.slideshare|.slutload|.smotri|.snagfilms|.snotr|.sohu|.soompi|.soundcloud|.soundgasm|.southpark|.space|.spankbang|.spankwire|.spiegel|.spiegeltv|.spike|.stitcher|.sport5|.sportbox|.sportdeutschland|.srf|.srmediathek|.ssa|.stanfordoc|.steam|.streamcloud|.streamcz|.streetvoice|.sunporno|.svt|.swrmediathek|.syfy|.sztvhu|.tagesschau|.tapely|.tass|.teachertube|.teachingchannel|.teamcoco|.techtalks|.ted|.telebruxelles|.telecinco|.telegraaf|.telemb|.teletask|.tenplay|.testurl|.testtube|.tf1|.theonion|.theplatform|.thesixtyone|.thisamericanlife|.thisav|.tinypic|.tlc|.tmz|.tnaflix|.thvideo|.toutv|.toypics|.traileraddict|.trilulilu|.trutube|.tube8|.tubitv|.tudou|.tumblr|.tunein|.turbo|.tutv|.tv2|.tv4|.tvc|.tvigle|.tvp|.tvplay|.tweakers|.twentyfourvideo|.twentytwotracks|.twitch|.twitter|.ubu|.udemy|.udn|.ultimedia|.unistra|.urort|.ustream|.varzesh3|.vbox7|.veehd|.veoh|.vessel|.vesti|.vevo|.vgtv|.vh1|.vice|.viddler|.videodetective|.videolecturesnet|.videofyme|.videomega|.videopremium|.videott|.videoweed|.vidme|.vidzi|.vier|.viewster|.vimeo|.vimple|.vine|.viki|.vk|.vlive|.vodlocker|.voicerepublic|.vporn|.vrt|.vube|.vuclip|.vulture|.walla|.washingtonpost|.wat|.wayofthemaster|.wdr|.webofstories|.weibo|.wimp|.wistia|.worldstarhiphop|.wrzuta|.wsj|.xbef|.xboxclips|.xhamster|.xminus|.xnxx|.xstream|.xtube|.xuite|.xvideos|.xxxymovies|.yahoo|.yam|.yandexmusic|.yesjapan|.yinyuetai|.ynet|.youjizz|.youku|.youporn|.yourupload|.youtube|.zapiks|.zdf|.zingmp3|gyfcat|itunes.apple|youtu.be)* ]]; then
+        ytfn=$(youtube-dl --get-filename "$input") || continue
+        ext=".${ytfn##*.}"
+        if [[ -n "$preservename" ]]; then
+          oname="${ytfn%.*}"
+          oname="${oname// /_}"
+        else
+          random
+        fi
+        if [[ "$quiet" == 1 ]]; then
+          ytquiet="q"
+        fi
+        youtube-dl -"$ytquiet"o - "$input" > "$localdir"/"$oname""$ext" || continue
+        share
+        continue
+      fi
+      mapfile -t http < <(wget --spider -S --quiet "$input" 2>&1)
+      # Check HTTP status is 200 OK.
+      if ! [[ "${http[*]}" == *@(1.1 200|302 Found|1.1 302 Moved Temporarily)* ]]; then echo Something went wrong. Check your link and try again.; continue; fi
+      for i in "${http[@]}"; do if [[ $i = *"Content-Type: "* ]]; then content="${i##*/}"; break; fi; done
+      if [[ $content == *";"* ]]; then
+        ext=.${content%%;*}
+      else
+        ext=."$content"
+      fi
+      random
+      if [[ $quiet == 1 ]]; then
+        wgetquiet="q"
+      fi
+      wget --no-use-server-timestamps -"$wgetquiet"O "$localdir"/"$oname""$ext" "$input"
+      share
+      continue
+    fi
+    echo "File doesn't exist! Skipping."
+    continue
+  fi
+
+  # Check if /nani/ already contains a hard link to input to  provide URL directly
+  if [[ -z "$oname" ]]; then
+    inode=$(ls -id "$input" | cut -f1 -d " ")
+    oname=$(find "$localdir" -type f -inum "$inode" -exec basename {} \; -quit)
+    if [[ -n "$oname" ]]; then
+      ext=
+      share
+      continue
+    fi
+  fi
+
+  # Store filename, content and extension and create output name
+  # Only store extension if input is not a directory
+  if ! [ -d "$input" ]; then
+    ext=".${input##*.}"
+  fi
+  content="$(file --mime-type "$input")"
+  content="${content##* }"
+  if [[ ."$input" == "$ext" ]]; then
+    ext=""
+  fi
+
+  # If file has no extension and enabled on the settings, use .txt
+  if [[ "$ext" == "" && "$addtxt" == 1 && ! "$content" == *@(directory|symlink)* ]]; then
+    ext=".txt"
+  fi
+
+  # If filetype contains text and enabled on the settings (and is not already .txt), use .txt as extension
+  if [[ "$content" == *"text"* && "$modifytext" = "1" && "$ext" != ".txt" ]]; then
+    ext=".txt"
+  fi
+
+  # Check if it's a directory. If so, send arguments to zip or create symbolic link
+  # Note it will use -0 as argument, which will not compress the data
+  if [[ "$content" == *@(directory|symlink)* ]]; then
+    if [[ "$symbolic" != "1" ]]; then
+      # Check if zip is installed
+      command -v zip >/dev/null 2>&1 || { echo >&2 "This script requires zip but it's not installed. Aborting."; continue; }
+      ext=".zip"
+      random
+      if [[ "$quiet" == 1 ]]; then
+        zq=" -q"
+      fi
+      zip -r0$zq - "${input}" > "$localdir"/"${oname}""$ext" || continue
+    else
+      ext=""
+      random
+      ln -fs "$PWD"/"${input}" "$localdir"/"$oname"
+    fi
+    share
+    continue
+  fi
+
+  if [[ "$content" == *"flac"* && "$transcode" = "1" ]]; then
+    # Check for dependencies metaflac, flac and lame
+    command -v metaflac >/dev/null 2>&1 || { echo >&2 "This script requires metaflac but it's not installed. Aborting."; continue; }
+    command -v flac >/dev/null 2>&1 || { echo >&2 "This script requires flac but it's not installed. Aborting."; continue; }
+    command -v lame >/dev/null 2>&1 || { echo >&2 "This script requires lame but it's not installed. Aborting."; continue; }
+    ext=".mp3"
+    random
+    # Get the tags
+    ARTIST=$(metaflac "$input" --show-tag=ARTIST | sed s/.*=//g)
+    TITLE=$(metaflac "$input" --show-tag=TITLE | sed s/.*=//g)
+    ALBUM=$(metaflac "$input" --show-tag=ALBUM | sed s/.*=//g)
+    GENRE=$(metaflac "$input" --show-tag=GENRE | sed s/.*=//g)
+    TRACKNUMBER=$(metaflac "$input" --show-tag=TRACKNUMBER | sed s/.*=//g)
+    DATE=$(metaflac "$input" --show-tag=DATE | sed s/.*=//g)
+    # Stream flac into the lame encoder, using -s and --quiet for the arguments if quiet mode is enabled:
+    if [[ "$quiet" == 1 ]]; then
+      qf="-s "
+      ql="--quiet "
+    fi
+    flac -c -d $qf"$input" | lame -V0 --vbr-new --add-id3v2 --pad-id3v2 $ql--ignore-tag-errors\
+      --ta "$ARTIST" --tt "$TITLE" --tl "$ALBUM"  --tg "${GENRE:-12}" \
+      --tn "${TRACKNUMBER:-0}" --ty "$DATE" - "$localdir"/"$oname""$ext" || continue
+    share
+    continue
+  else
+    random
+    copy
+    share
+  fi
+done
+
+if [[ -n "$urllist" ]]; then
+  clipboard
+fi
