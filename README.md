@@ -2,7 +2,7 @@
 `nani` is a bash script which will provide public URLs from the input (local files or other URLs). By default it will create a hard link of the local file to your www directory and provide the matching URL.
 
 # Install
-* Place `nani` somewhere in your PATH, like ~/bin
+* Place `nani` somewhere in your PATH, like `~/bin`
 * Make it executable: `chmod +x`
 * Modify the localdir and urlformat variables in the first lines of the script.
 
@@ -56,6 +56,4 @@ Some of the settings described above can be modified without editing the script,
     -t, --transcode  Revert the transcode setting
     -x, --xclip      Revert the xclip setting
     -y, --symbolic   Create a symbolic link for files and directories
-
 ```
-
