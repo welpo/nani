@@ -3,7 +3,7 @@
 
 # Install
 * Place `nani` somewhere in your PATH, like `~/bin`
-* Make it executable: `chmod +x`
+* Make it executable: `chmod +x nani`
 * Modify the localdir and urlformat variables in the first lines of the script.
 
 Optional:
@@ -16,9 +16,9 @@ Optional:
 # Input handling
 `nani` will process input based on its nature:
 
-- Directory: Will be stored using zip (or symbolic link)
+- Directory: Will be stored using `zip` (or symbolic link)
 - FLAC: Can be transcoded to MP3
-- Text (html, php...): Extension can be set to .txt
+- Text (`html`, `php`..): Extension can be set to `.txt`
 - Other files: New copy/hard link/symbolic link at output directory
 - URL to video (e.g: youtube): Downloaded using youtube-dl
 - Other URLs: Downloaded using wget
@@ -26,17 +26,17 @@ Optional:
 # Settings
 * `localdir` Local directory where files will be stored (e.g. your public_html folder)
 * `urlformat` URL that directs to the directory set in `localdir`
-* `addtxt` Add .txt to files with no extension? Default is 1 (Yes).
+* `addtxt` Add `.txt` to files with no extension? Default is 1 (Yes).
 * `hardlink` Create hard links instead of new copies. Default is 1 (Yes).
 * `minimum_length` Minimum number of characters for the output name. Default is 5.
-* `modifytext` If set to 1 (default) it will modify the extension of files storing text (.php, .html, .tex...) to `.txt`.
+* `modifytext` If set to 1 (default) it will modify the extension of files storing text (`.php`, `.html`, `.tex`...) to `.txt`.
 * `push` Send push notification (through Pushbullet and/or Pushover) with the URLs. Default is 0 (Don't send them).
 * `pushbullettoken` Your Pushbullet access token. Leave empty if you don't want to use Pushbullet.
 * `pushoverkey` Your Pushover key. Leave empty if you don't want to use Pushover.
 * `quiet` If set to 1 it will only output the URL. Default is 1 (be quiet).
 * `random_length` Maximum number of extra characters the length will have (the final length will be a number between minimum_length and minimum_length+random_length). Default is 2, can be left empty to always have the same string length.
-* `transcode` Transcode FLAC files to MP3 V0? Default is 1 (Yes). Requires metaflac, flac and lame.
-* `xclip` Send the URLs to xclip to get them in your local clipboard. Requires xclip and the -X flag set on the SSH session. Default is 1 (Enabled).
+* `transcode` Transcode FLAC files to MP3 V0? Default is 1 (Yes). Requires `metaflac`, `flac` and `lame`.
+* `xclip` Send the URLs to `xclip` to get them in your local clipboard. Requires `xclip` and the -X flag set on the SSH session. Default is 1 (Enabled).
 
 # Arguments
 Some of the settings described above can be modified without editing the script, just use the available flags:
