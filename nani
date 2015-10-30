@@ -93,7 +93,7 @@ random ()
   printf -v letters '%*s' $length ' ' ; letters="${letters// /X}"
 
   # If we want a random name...
-  if [[ -z "$preservename" || -z "$oname" ]]; then
+  if [[ -z "$preservename" ]]; then
     oname="$(mktemp "$localdir"/"$letters""$ext")" || continue
     oname="${oname##*/}"
     oname="${oname%.*}"
