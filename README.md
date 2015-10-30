@@ -25,6 +25,7 @@ Optional:
 
 # Settings
 * `localdir` Local directory where files will be stored (e.g. your public_html folder)
+* `symbolic` Create symbolic links instead of new copies/hard links. Default is 0 (Disabled). Useful when the output directory is on a different mount (for example if you are using SSHFS).
 * `urlformat` URL that directs to the directory set in `localdir`
 * `addtxt` Add `.txt` to files with no extension? Default is 1 (Yes).
 * `hardlink` Create hard links instead of new copies. Default is 1 (Yes).

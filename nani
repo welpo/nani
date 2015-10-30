@@ -30,6 +30,11 @@ urlformat=https://"$(hostname -f)"/"$(whoami)"/nani
 # Can be reverted by using the -a, --alias flag.
 hardlink=1
 
+# Create symbolic links instead of new copies? Default is 0 (No)
+# This is useful if your output dir is on a different mount
+# Can be forced using the -y, --symbolic flag
+symbolic=0
+
 # Minimum number of characters for the output name. Default is 5.
 # Can be overriden by using the -l X or --length=X flag.
 minimum_length=5
