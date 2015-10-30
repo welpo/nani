@@ -94,9 +94,9 @@ random ()
 
   # If we want a random name...
   if [[ -z "$preservename" || -z "$oname" ]]; then
-      oname="$(mktemp "$localdir"/"$letters""$ext")" || continue
-      oname="${oname##*/}"
-      oname="${oname%.*}"
+    oname="$(mktemp "$localdir"/"$letters""$ext")" || continue
+    oname="${oname##*/}"
+    oname="${oname%.*}"
   else
     # If we don't want a random name, check oname isn't set (-n, -o)
     if [ -z "$oname" ]; then
@@ -117,7 +117,7 @@ random ()
 
     # If -n, --name, -o or --original were used check output name doesn't exist on /nani/
     # If it does exist, prepend a random string of 5 characters (default, can be changed by adding or removing X's in the mktemp line)
-    if [[ -e "$localdir"/"$prename""${oname// /_}""$ext" ]]; then
+        if [[ -e "$localdir"/"$prename""${oname// /_}""$ext" || -z "$oname" ]]; then
       oname="$(mktemp "$localdir"/XXXXX"$oname""$ext")" || continue
       oname="${oname##*/}"
       oname="${oname%.*}"
