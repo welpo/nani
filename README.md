@@ -4,7 +4,7 @@
 # Install
 * Place `nani` somewhere in your PATH, like `~/bin`
 * Make it executable: `chmod +x nani`
-* Modify the localdir and urlformat variables in the first lines of the script.
+* Modify the `localdir` and `urlformat` variables in the first lines of the script.
 
 Optional:
 
@@ -24,11 +24,9 @@ Optional:
 - Other URLs: Downloaded using wget
 
 # Settings
-* `localdir` Local directory where files will be stored (e.g. your public_html folder)
-* `symbolic` Create symbolic links instead of new copies/hard links. Default is 0 (Disabled). Useful when the output directory is on a different mount (for example if you are using SSHFS).
-* `urlformat` URL that directs to the directory set in `localdir`
 * `addtxt` Add `.txt` to files with no extension? Default is 1 (Yes).
 * `hardlink` Create hard links instead of new copies. Default is 1 (Yes).
+* `localdir` Local directory where files will be stored (e.g. your public_html folder)
 * `minimum_length` Minimum number of characters for the output name. Default is 5.
 * `modifytext` If set to 1 (default) it will modify the extension of files storing text (`.php`, `.html`, `.tex`...) to `.txt`.
 * `push` Send push notification (through Pushbullet and/or Pushover) with the URLs. Default is 0 (Don't send them).
@@ -36,7 +34,10 @@ Optional:
 * `pushoverkey` Your Pushover key. Leave empty if you don't want to use Pushover.
 * `quiet` If set to 1 it will only output the URL. Default is 1 (be quiet).
 * `random_length` Maximum number of extra characters the length will have (the final length will be a number between minimum_length and minimum_length+random_length). Default is 2, can be left empty to always have the same string length.
+* `sshfs` Same as `symbolic` except it won't use symbolic links for directories (useful for SSHFS mounted output directories)
+* `symbolic` Create symbolic links instead of new copies/hard links. Default is 0 (Disabled).
 * `transcode` Transcode FLAC files to MP3 V0? Default is 1 (Yes). Requires `metaflac`, `flac` and `lame`.
+* `urlformat` URL that directs to the directory set in `localdir`
 * `xclip` Send the URLs to `xclip` to get them in your local clipboard. Requires `xclip` and the -X flag set on the SSH session. Default is 1 (Enabled).
 
 # Arguments
