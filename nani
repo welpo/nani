@@ -35,6 +35,10 @@ hardlink=1
 # Can be forced using the -y, --symbolic flag
 symbolic=0
 
+# Create symbolic links for everything except directories
+# Useful when output dir is in a different mount, (e.g. SSHFS)
+sshfs=0
+
 # Minimum number of characters for the output name. Default is 5.
 # Can be overriden by using the -l X or --length=X flag.
 minimum_length=5
@@ -135,7 +139,7 @@ copy ()
   fi
   # -l to save space (hard link) and -f to overwrite the mktemp file
   # symbolic link when using SSHFS or cp -l errors out (different mounts)
-  if [[ "$symbolic" == "1" ]]; then
+  if [[ "$symbolic" == "1" || "$sshfs" == "1" ]]; then
     ln -sf "$(realpath "$input")" "$localdir"/"$oname""$ext"
   else
     cp -f$hard_link_arg "$input" "$localdir"/"$oname""$ext"
