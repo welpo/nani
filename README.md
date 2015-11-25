@@ -6,7 +6,7 @@
 * Make it executable: `chmod +x nani`
 * Modify the `localdir` and `urlformat` variables in the first lines of the script.
 
-Optional:
+**Optional**
 
 * Set up everything else to your likings.
 * Add a cron task to automatically remove files older than 1 day
