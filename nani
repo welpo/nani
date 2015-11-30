@@ -21,11 +21,11 @@
 
 # Local directory where files will be stored (should be inside your public_html folder):
 # Do NOT use a trailing slash
-localdir="${HOME}"/www/"$(whoami)"."$(hostname -f)"/public_html/nani
+local_directory="${HOME}"/www/"$(whoami)"."$(hostname -f)"/public_html/nani
 
 # URL format (example: https://yoursite.com/nani)
 # Do NOT use a trailing slash
-urlformat=https://"$(hostname -f)"/"$(whoami)"/nani
+url_format=https://"$(hostname -f)"/"$(whoami)"/nani
 
 # Create hard links instead of new copies? Default is 1 (Yes)
 # Can be reverted by using the -a, --alias flag.
@@ -56,10 +56,10 @@ random_length=2
 quiet=1
 
 # Do you want to add .txt to files with no extension? Default is 1 (Yes).
-addtxt=1
+add_txt=1
 
 # Do you want to change the extension of files storing text (.php, .html, .tex...) to .txt? Default is 1 (Yes).
-modifytext=1
+modify_text=1
 
 # Do you want to transcode flac to MP3 V0? Default is 1 (Yes). Requires metaflac, flac and lame.
 # Setting can be reversed by using the -t or --transcode flag
@@ -76,10 +76,10 @@ xclip=1
 push=0
 
 # Your Pushbullet access token https://www.pushbullet.com/account Leave empty if you don't want to use Pushbullet.
-pushbullettoken=
+pushbullet_token=
 
 # Your Pushover key https://pushover.net/ Leave empty if you don't want to use Pushover.
-pushoverkey=
+pushover_key=
 
 ############################## END CONFIGURATION ##############################
 
@@ -88,8 +88,8 @@ random ()
 {
   # Set the final string length if random_length is set and setlength is not (the latter will be =1 when -s or --string flag is used)
   if [[ -n "$random_length" && -z "$setlength" ]]; then
-    addlength=$(( ( RANDOM % $random_length )  + 1 ))
-    length=$(($addlength + $minimum_length))
+    add_length=$(( ( RANDOM % $random_length )  + 1 ))
+    length=$(($add_length + $minimum_length))
   else
     length="$minimum_length"
   fi
@@ -99,36 +99,36 @@ random ()
 
   # If we want a random name...
   if [[ -z "$preservename" ]]; then
-    oname="$(mktemp "$localdir"/"$letters""$ext")" || continue
-    oname="${oname##*/}"
-    oname="${oname%.*}"
+    output_name="$(mktemp "$local_directory"/"$letters""$extension")" || continue
+    output_name="${output_name##*/}"
+    output_name="${output_name%.*}"
   else
-    # If we don't want a random name, check oname isn't set (-n, -o)
-    if [ -z "$oname" ]; then
+    # If we don't want a random name, check output_name isn't set (-n, -o)
+    if [ -z "$output_name" ]; then
       # Store basename
-      bname=$(basename "$input")
+      file_basename=$(basename "$input")
       if [[ -d "$input" || -h "$input" ]]; then
         # Keep the whole thing if it is a directory
-        oname="$bname"
+        output_name="$file_basename"
       else
         # Only keep name, not extension, when it's not a directory. handle dotfiles
-        if [[ "$oname" == "${bname%.*}" ]]; then
-          oname="$bname"
+        if [[ "$output_name" == "${file_basename%.*}" ]]; then
+          output_name="$file_basename"
         else
-          oname="${bname%.*}"
+          output_name="${file_basename%.*}"
         fi
       fi
     fi
 
     # If -n, --name, -o or --original were used check output name doesn't exist on /nani/
     # If it does exist, prepend a random string of 5 characters (default, can be changed by adding or removing X's in the mktemp line)
-        if [[ -e "$localdir"/"$prename""${oname// /_}""$ext" || -z "$oname" ]]; then
-      oname="$(mktemp "$localdir"/XXXXX"$oname""$ext")" || continue
-      oname="${oname##*/}"
-      oname="${oname%.*}"
+    if [[ -e "$local_directory"/"${output_name// /_}""$extension" || -z "$output_name" ]]; then
+      output_name="$(mktemp "$local_directory"/XXXXX"$output_name""$extension")" || continue
+      output_name="${output_name##*/}"
+      output_name="${output_name%.*}"
     fi
     # Truncate spaces for underscores
-    oname="${oname// /_}"
+    output_name="${output_name// /_}"
   fi
 }
 
@@ -141,32 +141,32 @@ copy ()
   # -l to save space (hard link) and -f to overwrite the mktemp file
   # symbolic link when using SSHFS or cp -l errors out (different mounts)
   if [[ "$symbolic" == "1" || "$sshfs" == "1" ]]; then
-    ln -sf "$(realpath "$input")" "$localdir"/"$oname""$ext"
+    ln -sf "$(realpath "$input")" "$local_directory"/"$output_name""$extension"
   else
-    cp -f$hard_link_arg "$input" "$localdir"/"$oname""$ext"
+    cp -f$hard_link_arg "$input" "$local_directory"/"$output_name""$extension"
   fi
 }
 
 # Provides URL to output file
 share ()
 {
-  url="$urlformat"/"$oname""$ext"
+  url="$url_format"/"$output_name""$extension"
   # Add trailing slash to URL if it created a symbolic link and is missing
-  if [[ "$content" == *"directory"* && "$symbolic" = "1" && "$url" != */ ]]; then
+  if [[ "$file_mime_type" == *"directory"* && "$symbolic" = "1" && "$url" != */ ]]; then
     url="$url"/
   fi
   # Send URL to push notification services
   if [ "$push" = 1 ]; then
-    if [[ -n "$pushbullettoken" ]]; then
-      curl -s --header 'Authorization: Bearer '$pushbullettoken'' -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "link", "title": "'"$input"\ \("$oname""$ext"\)'", "body": "'"$url"'", "url": "'"$url"'"}' > /dev/null
+    if [[ -n "$pushbullet_token" ]]; then
+      curl -s --header 'Authorization: Bearer '$pushbullet_token'' -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "link", "title": "'"$input"\ \("$output_name""$extension"\)'", "body": "'"$url"'", "url": "'"$url"'"}' > /dev/null
     fi
-    if [[ -n "$pushoverkey" ]]; then
+    if [[ -n "$pushover_key" ]]; then
       curl -s \
         --form-string "token=ajcRHNs9uX3wv2AQiypwcw8sKamrYH" \
-        --form-string "user=$pushoverkey" \
-        --form-string "message=$input ($oname$ext)" \
+        --form-string "user=$pushover_key" \
+        --form-string "message=$input ($output_name$extension)" \
         --form-string "url=$url" \
-        --form-string "url_title=$oname$ext" \
+        --form-string "url_title=$output_name$extension" \
         https://api.pushover.net/1/messages.json > /dev/null
     fi
   fi
@@ -184,6 +184,7 @@ clipboard ()
   if [[ -f /usr/bin/xclip ]] && [[ ! -z "$DISPLAY" ]] && [[ "$xclip" == 1 ]]; then
     { IFS=$'\n'; printf %s "${urllist[*]}"; } | xclip -selection c
   fi
+
   # Windows running Cygwin
   if [[ "$system" == *"CYGWIN"* ]]; then
     { IFS=$'\n'; printf %s "${urllist[*]}"; } > /dev/clipboard
@@ -198,18 +199,17 @@ clipboard ()
 # Remove all files on /nani/ except index.html and the /k/ directory (permanent nani)
 cleanup ()
 {
-  find "$localdir"/ -mindepth 1 ! -name "index.html" ! -name "k" ! -path '*/k/*' -delete
+  find "$local_directory"/ -mindepth 1 ! -name "index.html" ! -name "k" ! -path '*/k/*' -delete
 }
 
 # Reset variables. Necessary for when it handles more than 1 file as argument
 cleanvar ()
 {
-  oname="$chosenname"
-  addlength=
-  bname=
-  prename=
-  inode=
-  ext=
+  add_length=
+  extension=
+  file_basename=
+  file_inode=
+  output_name="$chosen_name"
 }
 
 # Display help
@@ -267,21 +267,21 @@ while :; do
       insert_mode="1"
       ;;
     -k|--keep)
-      localdir+="/k"
-      urlformat+="/k"
+      local_directory+="/k"
+      url_format+="/k"
       shift 1
       continue
       ;;
     -l|--list)
-      printf "Files in $localdir/:\n\n"
-      ls --color=auto "$localdir"
-      ext=".zip"
+      printf "Files in $local_directory/:\n\n"
+      ls --color=auto "$local_directory"
+      extension=".zip"
       printf '\nRun nani -c or nani --cleanup to remove all files except index.html\n'
       exit
       ;;
     --name=?*)
-      oname=${1#*=} # Delete everything up to "=" and assign the remainder.
-      chosenname=${1#*=} # Delete everything up to "=" and assign the remainder.
+      output_name=${1#*=} # Delete everything up to "=" and assign the remainder.
+      chosen_name=${1#*=} # Delete everything up to "=" and assign the remainder.
       preservename=1
       ;;
     --name=)         # Handle the case of an empty --name=
@@ -290,8 +290,8 @@ while :; do
       ;;
     -n)       # Takes an option argument, ensuring it has been specified.
       if [[ -n "$2" ]]; then
-        oname=$2
-        chosenname=$2
+        output_name=$2
+        chosen_name=$2
         preservename=1
         shift 2
         continue
@@ -337,8 +337,7 @@ while :; do
     -y|--symbolic)
       symbolic=1
       ;;
-    -?*)
-      # This below allows for grouped options, example: nani -xot File1
+    -?*)   # This below allows for grouped options, example: nani -xot File1
       if [[ "${#1}" -ge "3" && ${1:1:1} != "-" ]]; then
         for (( i=1; i<${#1}; i++ )); do
           if [[ "${1:$i:1}" == "a" ]]; then
@@ -350,8 +349,8 @@ while :; do
             continue
           fi
           if [[ "${1:$i:1}" == "k" ]]; then
-            localdir+="/k"
-            urlformat+="/k"
+            local_directory+="/k"
+            url_format+="/k"
             continue
           fi
           if [[ "${1:$i:1}" == "o" ]]; then
@@ -401,12 +400,12 @@ while :; do
 done
 
 # Create the directory where the files will go, in your public folder
-mkdir -p "$localdir" || exit
+mkdir -p "$local_directory" || exit
 
 # Create index.html in the output folder, to avoid directory listing
-if ! [[ -a "$localdir"/index.html ]]; then
-  #touch "$localdir"/index.html
-  echo "<html><meta charset="utf-8"><head><title>何これ?</title></head><body><div align=center><h1>nani kore!?</h1></div></body></html>" > "$localdir"/index.html
+if ! [[ -a "$local_directory"/index.html ]]; then
+  #touch "$local_directory"/index.html
+  echo "<html><meta charset="utf-8"><head><title>何これ?</title></head><body><div align=center><h1>nani kore!?</h1></div></body></html>" > "$local_directory"/index.html
 fi
 
 # Check settings have valid values
@@ -444,10 +443,10 @@ if [[ -n "$pushbulletkey" ]]; then
   fi
 fi
 
-# Checking if $pushoverkey is valid
-if [[ -n "$pushoverkey" ]]; then
-  if  ! [[ "$pushoverkey" =~ ^[a-zA-Z0-9]+$ ]]; then
-    echo "The value set for \$pushoverkey is not valid. Fix it or leave it empty."
+# Checking if $pushover_key is valid
+if [[ -n "$pushover_key" ]]; then
+  if  ! [[ "$pushover_key" =~ ^[a-zA-Z0-9]+$ ]]; then
+    echo "The value set for \$pushover_key is not valid. Fix it or leave it empty."
     exit 1
   fi
 fi
@@ -458,15 +457,15 @@ if [[ $quiet != [01] ]]; then
   exit 1
 fi
 
-# Checking if $addtxt is an integer and either 0 or 1
-if [[ $addtxt != [01] ]]; then
-  echo "The value set for addtxt is not valid. It must be either 1 or 0"
+# Checking if $add_txt is an integer and either 0 or 1
+if [[ $add_txt != [01] ]]; then
+  echo "The value set for add_txt is not valid. It must be either 1 or 0"
   exit 1
 fi
 
-# Checking if $modifytext is an integer and either 0 or 1
-if [[ $modifytext != [01] ]]; then
-  echo "The value set for modifytext is not valid. It must be either 1 or 0."
+# Checking if $modify_text is an integer and either 0 or 1
+if [[ $modify_text != [01] ]]; then
+  echo "The value set for modify_text is not valid. It must be either 1 or 0."
   exit 1
 fi
 
@@ -484,13 +483,13 @@ fi
 
 # Insert mode:
 if [[ "$insert_mode" == 1 ]]; then
-  ext=.txt
+  extension=.txt
   random
-  nano -t "$localdir"/"$oname""$ext" || exit
-  #vim "$localdir"/"$oname""$ext"
-  #cat > "$localdir"/"$oname""$ext"
+  nano -t "$local_directory"/"$output_name""$extension" || exit
+  # vim "$local_directory"/"$output_name""$extension"
+  # cat > "$local_directory"/"$output_name""$extension"
   # Check output actually exists, just in case nano is closed before entering text
-  [[ ! -f "$localdir"/"$oname""$ext" ]] && exit 1
+  [[ ! -f "$local_directory"/"$output_name""$extension" ]] && exit 1
   share
   clipboard
   exit
@@ -498,9 +497,9 @@ fi
 
 # Check if input comes from stdin, if so, just cat input to /nani/
 if ! [[ -t 0 ]]; then
-  ext=".txt"
+  extension=".txt"
   random
-  cat > "$localdir"/"$oname""$ext" || exit
+  cat > "$local_directory"/"$output_name""$extension" || exit
   share
   clipboard
   exit
@@ -518,34 +517,34 @@ for input in "$@"; do
       # Chek if URL is from a site supported by youtube-dl, if it is, grab the file and output it to /nani/
       if [[ "$input" == *@(.abc|.abc7news|.academicearth|.addanime|.adobetv|.adultswim|.aftenposten|.aftonbladet|.airmozilla|.aljazeera|.alphaporno|.anitube|.anysex|.aol|.allocine|.aparat|.appleconnect|.appletrailers|.archiveorg|.ard|.arte|.atresplayer|.atttechchannel|.audiomack|.azubu|.baidu|.bambuser|.bandcamp|.bbc|.beeg|.behindkink|.beatportpro|.bet|.bild|.bilibili|.blinkx|.bliptv|.bloomberg|.bpb|.br|.breakcom|.brightcove|.buzzfeed|.byutv|.c56|.camdemy|.canal13cl|.canalplus|.canalc2|.cbs|.cbsnews|.cbssports|.ccc|.ceskatelevize|.channel9|.chaturbate|.chilloutzone|.chirbit|.cinchcast|.cinemassacre|.clipfish|.cliphunter|.clipsyndicate|.cloudy|.clubic|.cmt|.cnet|.cnn|.collegehumor|.collegerama|.comedycentral|.comcarcoff|.commonmistakes|.condenast|.cracked|.criterion|.crooksandliars|.crunchyroll|.cspan|.ctsnews|.dailymotion|.daum|.dbtv|.dcn|.dctp|.deezer|.dfb|.dhm|.dotsub|.douyutv|.dramafever|.dreisat|.drbonanza|.drtuber|.drtv|.dvtv|.dump|.dumpert|.defense|.discovery|.dropbox|.eagleplatform|.ebaumsworld|.echomsk|.ehow|.eighttracks|.einthusan|.eitb|.ellentv|.elpais|.embedly|.engadget|.eporner|.eroprofile|.escapist|.espn|.esri|.europa|.everyonesmixtape|.exfm|.expotv|.extremetube|.facebook|.faz|.fc2|.fczenit|.firstpost|.firsttv|.fivemin|.fivetv|.fktv|.flickr|.folketinget|.footyroom|.fourtube|.foxgay|.foxnews|.foxsports|.franceculture|.franceinter|.francetv|.freesound|.freespeech|.freevideo|.funnyordie|.gamekings|.gameone|.gamersyde|.gamespot|.gamestar|.gametrailers|.gazeta|.gdcvault|.generic|.gfycat|.giantbomb|.giga|.glide|.globo|.godtube|.goldenmoustache|.golem|.googleplus|.googlesearch|.gorillavid|.goshgay|.groupon|.hark|.hearthisat|.heise|.hellporno|.helsinki|.hentaistigma|.historicfilms|.history|.hitbox|.hornbunny|.hotnewhiphop|.howcast|.howstuffworks|.huffpost|.hypem|.iconosquare|.ign|.imdb|.imgur|.ina|.indavideo|.infoq|.instagram|.internetvideoarchive|.iprima|.iqiyi|.ir90tv|.ivi|.izlesene|.jadorecettepub|.jeuxvideo|.jove|.jukebox|.jpopsukitv|.kaltura|.kanalplay|.kankan|.karaoketv|.karrierevideos|.keezmovies|.khanacademy|.kickstarter|.keek|.kontrtube|.krasview|.ku6|.kuwo|.la7|.laola1tv|.lecture2go|.letv|.libsyn|.lifenews|.limelight|.liveleak|.livestream|.lnkgo|.lrt|.lynda|.m6|.macgamestore|.mailru|.malemotion|.mdr|.metacafe|.metacritic|.mgoon|.minhateca|.ministrygrid|.miomio|.mit|.mitele|.mixcloud|.mlb|.mpora|.moevideo|.mofosex|.mojvideo|.moniker|.mooshare|.morningstar|.motherless|.motorsport|.movieclips|.moviezine|.movshare|.mtv|.muenchentv|.musicplayon|.muzu|.mwave|.myspace|.myspass|.myvi|.myvideo|.myvidster|.nationalgeographic|.naver|.nba|.nbc|.ndr|.ndtv|.netzkino|.nerdcubed|.nerdist|.neteasemusic|.newgrounds|.newstube|.nextmedia|.nfb|.nfl|.nhl|.niconico|.ninegag|.noco|.normalboots|.nosvideo|.nova|.novamov|.nowness|.nowtv|.nowvideo|.npo|.nrk|.ntvde|.ntvru|.nytimes|.nuvid|.odnoklassniki|.oktoberfesttv|.onionstudios|.ooyala|.orf|.parliamentliveuk|.patreon|.pbs|.periscope|.philharmoniedeparis|.phoenix|.photobucket|.pinkbike|.planetaplay|.pladform|.played|.playfm|.playtvak|.playvid|.playwire|.pluralsight|.podomatic|.porn91|.pornhd|.pornhub|.pornotube|.pornovoisines|.pornoxo|.primesharetv|.promptfile|.prosiebensat1|.puls4|.pyvideo|.qqmusic|.quickvid|.r7|.radiode|.radiojavan|.radiobremen|.radiofrance|.rai|.rbmaradio|.rds|.redtube|.restudy|.reverbnation|.ringtv|.ro220|.rottentomatoes|.roxwel|.rtbf|.rte|.rtlnl|.rtl2|.rtp|.rts|.rtve|.rtvnh|.ruhd|.rutube|.rutv|.ruutu|.sandia|.safari|.sapo|.saveimport SaveFromIE|.sbs|.scivee|.screencast|.screencastomatic|.screenwavemedia|.senateisvp|.servingsys|.sexu|.sexykarma|.shahid|.shared|.sharesix|.sina|.slideshare|.slutload|.smotri|.snagfilms|.snotr|.sohu|.soompi|.soundcloud|.soundgasm|.southpark|.space|.spankbang|.spankwire|.spiegel|.spiegeltv|.spike|.stitcher|.sport5|.sportbox|.sportdeutschland|.srf|.srmediathek|.ssa|.stanfordoc|.steam|.streamcloud|.streamcz|.streetvoice|.sunporno|.svt|.swrmediathek|.syfy|.sztvhu|.tagesschau|.tapely|.tass|.teachertube|.teachingchannel|.teamcoco|.techtalks|.ted|.telebruxelles|.telecinco|.telegraaf|.telemb|.teletask|.tenplay|.testurl|.testtube|.tf1|.theonion|.theplatform|.thesixtyone|.thisamericanlife|.thisav|.tinypic|.tlc|.tmz|.tnaflix|.thvideo|.toutv|.toypics|.traileraddict|.trilulilu|.trutube|.tube8|.tubitv|.tudou|.tumblr|.tunein|.turbo|.tutv|.tv2|.tv4|.tvc|.tvigle|.tvp|.tvplay|.tweakers|.twentyfourvideo|.twentytwotracks|.twitch|.twitter|.ubu|.udemy|.udn|.ultimedia|.unistra|.urort|.ustream|.varzesh3|.vbox7|.veehd|.veoh|.vessel|.vesti|.vevo|.vgtv|.vh1|.vice|.viddler|.videodetective|.videolecturesnet|.videofyme|.videomega|.videopremium|.videott|.videoweed|.vidme|.vidzi|.vier|.viewster|.vimeo|.vimple|.vine|.viki|.vk|.vlive|.vodlocker|.voicerepublic|.vporn|.vrt|.vube|.vuclip|.vulture|.walla|.washingtonpost|.wat|.wayofthemaster|.wdr|.webofstories|.weibo|.wimp|.wistia|.worldstarhiphop|.wrzuta|.wsj|.xbef|.xboxclips|.xhamster|.xminus|.xnxx|.xstream|.xtube|.xuite|.xvideos|.xxxymovies|.yahoo|.yam|.yandexmusic|.yesjapan|.yinyuetai|.ynet|.youjizz|.youku|.youporn|.yourupload|.youtube|.zapiks|.zdf|.zingmp3|gyfcat|itunes.apple|youtu.be)* ]]; then
         ytfn=$(youtube-dl --get-filename "$input") || continue
-        ext=".${ytfn##*.}"
+        extension=".${ytfn##*.}"
         if [[ -n "$preservename" ]]; then
-          oname="${ytfn%.*}"
-          oname="${oname// /_}"
+          output_name="${ytfn%.*}"
+          output_name="${output_name// /_}"
         else
           random
         fi
         if [[ "$quiet" == 1 ]]; then
           ytquiet="q"
         fi
-        youtube-dl -"$ytquiet"o - "$input" > "$localdir"/"$oname""$ext" || continue
+        youtube-dl -"$ytquiet"o - "$input" > "$local_directory"/"$output_name""$extension" || continue
         share
         continue
       fi
       mapfile -t http < <(wget --spider -S --quiet "$input" 2>&1)
       # Check HTTP status is 200 OK.
       if ! [[ "${http[*]}" == *@(1.1 200|302 Found|1.1 302 Moved Temporarily)* ]]; then echo Something went wrong. Check your link and try again.; continue; fi
-      for i in "${http[@]}"; do if [[ $i = *"Content-Type: "* ]]; then content="${i##*/}"; break; fi; done
-      if [[ $content == *";"* ]]; then
-        ext=.${content%%;*}
+      for i in "${http[@]}"; do if [[ $i = *"Content-Type: "* ]]; then file_mime_type="${i##*/}"; break; fi; done
+      if [[ "$file_mime_type" == *";"* ]]; then
+        extension=.${file_mime_type%%;*}
       else
-        ext=."$content"
+        extension=."$file_mime_type"
       fi
       random
       if [[ $quiet == 1 ]]; then
         wgetquiet="q"
       fi
-      wget --no-use-server-timestamps -"$wgetquiet"O "$localdir"/"$oname""$ext" "$input"
+      wget --no-use-server-timestamps -"$wgetquiet"O "$local_directory"/"$output_name""$extension" "$input"
       share
       continue
     fi
@@ -554,64 +553,64 @@ for input in "$@"; do
   fi
 
   # Check if /nani/ already contains a hard link to input to  provide URL directly
-  if [[ -z "$oname" ]]; then
-    inode=$(ls -id "$input" | cut -f1 -d " ")
-    oname=$(find "$localdir" -type f -inum "$inode" -exec basename {} \; -quit)
-    if [[ -n "$oname" ]]; then
-      ext=
+  if [[ -z "$output_name" ]]; then
+    file_inode=$(ls -id "$input" | cut -f1 -d " ")
+    output_name=$(find "$local_directory" -type f -inum "$file_inode" -exec basename {} \; -quit)
+    if [[ -n "$output_name" ]]; then
+      extension=
       share
       continue
     fi
   fi
 
-  # Store filename, content and extension and create output name
+  # Store filename, the mime-type and extension
   # Only store extension if input is not a directory
   if ! [ -d "$input" ]; then
-    ext=".${input##*.}"
+    extension=".${input##*.}"
   fi
-  content="$(file --mime-type "$input")"
-  content="${content##* }"
-  if [[ ."$input" == "$ext" ]]; then
-    ext=""
+  file_mime_type="$(file --mime-type "$input")"
+  file_mime_type="${file_mime_type##* }"
+  if [[ ."$input" == "$extension" ]]; then
+    extension=""
   fi
 
   # If file has no extension and enabled on the settings, use .txt
-  if [[ "$ext" == "" && "$addtxt" == 1 && ! "$content" == *@(directory|symlink)* ]]; then
-    ext=".txt"
+  if [[ "$extension" == "" && "$add_txt" == 1 && ! "$file_mime_type" == *@(directory|symlink)* ]]; then
+    extension=".txt"
   fi
 
   # If filetype contains text and enabled on the settings (and is not already .txt), use .txt as extension
-  if [[ "$content" == *"text"* && "$modifytext" = "1" && "$ext" != ".txt" ]]; then
-    ext=".txt"
+  if [[ "$file_mime_type" == *"text"* && "$modify_text" = "1" && "$extension" != ".txt" ]]; then
+    extension=".txt"
   fi
 
   # Check if it's a directory. If so, send arguments to zip or create symbolic link
   # Note it will use -0 as argument, which will not compress the data
-  if [[ "$content" == *@(directory|symlink)* ]]; then
+  if [[ "$file_mime_type" == *@(directory|symlink)* ]]; then
     if [[ "$symbolic" != "1" ]]; then
       # Check if zip is installed
       command -v zip >/dev/null 2>&1 || { echo >&2 "This script requires zip but it's not installed. Aborting."; continue; }
-      ext=".zip"
+      extension=".zip"
       random
       if [[ "$quiet" == 1 ]]; then
         zq=" -q"
       fi
-      zip -r0$zq - "${input}" > "$localdir"/"${oname}""$ext" || continue
+      zip -r0$zq - "${input}" > "$local_directory"/"${output_name}""$extension" || continue
     else
-      ext=""
+      extension=""
       random
-      ln -fs "$PWD"/"${input}" "$localdir"/"$oname"
+      ln -fs "$PWD"/"${input}" "$local_directory"/"$output_name"
     fi
     share
     continue
   fi
 
-  if [[ "$content" == *"flac"* && "$transcode" = "1" ]]; then
+  if [[ "$file_mime_type" == *"flac"* && "$transcode" = "1" ]]; then
     # Check for dependencies metaflac, flac and lame
     command -v metaflac >/dev/null 2>&1 || { echo >&2 "This script requires metaflac but it's not installed. Aborting."; continue; }
     command -v flac >/dev/null 2>&1 || { echo >&2 "This script requires flac but it's not installed. Aborting."; continue; }
     command -v lame >/dev/null 2>&1 || { echo >&2 "This script requires lame but it's not installed. Aborting."; continue; }
-    ext=".mp3"
+    extension=".mp3"
     random
     # Get the tags
     ARTIST=$(metaflac "$input" --show-tag=ARTIST | sed s/.*=//g)
@@ -627,7 +626,7 @@ for input in "$@"; do
     fi
     flac -c -d $qf"$input" | lame -V0 --vbr-new --add-id3v2 --pad-id3v2 $ql--ignore-tag-errors\
       --ta "$ARTIST" --tt "$TITLE" --tl "$ALBUM"  --tg "${GENRE:-12}" \
-      --tn "${TRACKNUMBER:-0}" --ty "$DATE" - "$localdir"/"$oname""$ext" || continue
+      --tn "${TRACKNUMBER:-0}" --ty "$DATE" - "$local_directory"/"$output_name""$extension" || continue
     share
     continue
   else
