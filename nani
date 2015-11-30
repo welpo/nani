@@ -23,7 +23,7 @@
 # Do NOT use a trailing slash
 localdir="${HOME}"/www/"$(whoami)"."$(hostname -f)"/public_html/nani
 
-# URL format (example: https://yoursite.com/nani/)
+# URL format (example: https://yoursite.com/nani)
 # Do NOT use a trailing slash
 urlformat=https://"$(hostname -f)"/"$(whoami)"/nani
 
