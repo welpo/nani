@@ -4,7 +4,7 @@
 # Install
 * Place `nani` somewhere in your PATH, like `~/bin`
 * Make it executable: `chmod +x nani`
-* Modify the `localdir` and `url_format` variables in the first lines of the script.
+* Modify the `local_directory` and `url_format` variables in the first lines of the script.
 
 **Optional**
 
@@ -26,7 +26,7 @@
 # Settings
 * `add_txt` Add `.txt` to files with no extension? Default is 1 (Yes).
 * `hardlink` Create hard links instead of new copies. Default is 1 (Yes).
-* `localdir` Local directory where files will be stored (e.g. your public_html folder)
+* `local_directory` Local directory where files will be stored (e.g. your public_html folder)
 * `minimum_length` Minimum number of characters for the output name. Default is 5.
 * `modify_text` If set to 1 (default) it will modify the extension of files storing text (`.php`, `.html`, `.tex`...) to `.txt`.
 * `push` Send push notification (through Pushbullet and/or Pushover) with the URLs. Default is 0 (Don't send them).
@@ -37,7 +37,7 @@
 * `sshfs` Same as `symbolic` except it won't use symbolic links for directories (useful for SSHFS mounted output directories)
 * `symbolic` Create symbolic links instead of new copies/hard links. Default is 0 (Disabled).
 * `transcode` Transcode FLAC files to MP3 V0? Default is 1 (Yes). Requires `metaflac`, `flac` and `lame`.
-* `url_format` URL that directs to the directory set in `localdir`
+* `url_format` URL that directs to the directory set in `local_directory`
 * `xclip` Send the URLs to `xclip` to get them in your local clipboard. Requires `xclip` and the -X flag set on the SSH session. Default is 1 (Enabled).
 
 # Arguments
