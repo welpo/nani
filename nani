@@ -181,7 +181,7 @@ clipboard ()
   system="$(uname -s)"
 
   # If xclip is installed, and you started ssh with "-X", the following line would get the URL on your local clipboard
-  if [[ -f /usr/bin/xclip ]] && [[ ! -z "$DISPLAY" ]] && [[ "$xclip" == 1 ]]; then
+  if [[ "$xclip" == 1 ]] && [[ -n "$DISPLAY" ]] && hash xclip 2>/dev/null; then
     { IFS=$'\n'; printf %s "${urllist[*]}"; } | xclip -selection c
   fi
 
