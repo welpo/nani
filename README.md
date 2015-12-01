@@ -18,9 +18,9 @@
 
 - Directory: Will be stored using `zip` (or symbolic link)
 - FLAC: Can be transcoded to MP3
-- Text (`html`, `php`..): Extension can be set to `.txt`
+- Text (`html`, `php`...): Extension can be set to `.txt`
 - Other files: New copy/hard link/symbolic link at output directory
-- URL to video (e.g: youtube): Downloaded using youtube-dl
+- URL to video (e.g: youtube): Downloaded using [youtube-dl](https://github.com/rg3/youtube-dl)
 - Other URLs: Downloaded using wget
 
 # Settings
@@ -45,8 +45,8 @@ Some of the settings described above can be modified without editing the script,
 
 ```
     -a, --alias      Revert the hard link setting
-    -c, --cleanup    Remove all files on /nani/ except index.html
-    -h, --help       Display this help and exit
+    -c, --cleanup    Remove all files on /nani/ (except index.html)
+    -h, --help       Display help and exit
     -i, --insert     Open nano to enter text. Saved in output directory as .txt
     -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules
     -l, --list       List files in output directory /nani/
