@@ -21,15 +21,15 @@
 
 # Local directory where files will be stored (should be inside your public_html folder):
 # Do NOT use a trailing slash
-local_directory="${HOME}"/www/"$(whoami)"."$(hostname -f)"/public_html/nani
+local_directory="$HOME/www/$(whoami).$(hostname -f)/public_html/nani"
 
 # URL format (example: https://yoursite.com/nani)
 # Do NOT use a trailing slash
-url_format=https://"$(hostname -f)"/"$(whoami)"/nani
+url_format=https://$(hostname -f)/$(whoami)/nani
 
 # Create hard links instead of new copies? Default is 1 (Yes)
 # Can be reverted by using the -a, --alias flag.
-hardlink=1
+hard_link=1
 
 # Create symbolic links instead of new copies? Default is 0 (No)
 # This is useful if your output dir is on a different mount
@@ -135,7 +135,7 @@ random ()
 # Creates copy (hard link, symbolic link or just cp) to input file in /nani/
 copy ()
 {
-  if [[ "$hardlink" == 1 ]]; then
+  if [[ "$hard_link" == 1 ]]; then
     hard_link_arg="l"
   fi
   # -l to save space (hard link) and -f to overwrite the mktemp file
@@ -252,7 +252,7 @@ showhelp ()
 while :; do
   case $1 in
     -a|--alias)
-      hardlink=$((!hardlink))
+      hard_link=$((!hard_link))
       ;;
     -c|--cleanup)
       echo "Cleaning up..."
@@ -342,7 +342,7 @@ while :; do
       if [[ "${#1}" -ge "3" && ${1:1:1} != "-" ]]; then
         for (( i=1; i<${#1}; i++ )); do
           if [[ "${1:$i:1}" == "a" ]]; then
-            hardlink=$((!hardlink))
+            hard_link=$((!hard_link))
             continue
           fi
           if [[ "${1:$i:1}" == "i" ]]; then
@@ -600,11 +600,11 @@ for input in "$@"; do
       if [[ "$quiet" == 1 ]]; then
         zq=" -q"
       fi
-      zip -r0$zq - "${input}" > "$local_directory"/"${output_name}""$extension" || continue
+      zip -r0$zq - "$input" > "$local_directory"/"$output_name""$extension" || continue
     else
       extension=""
       random
-      ln -fs "$PWD"/"${input}" "$local_directory"/"$output_name"
+      ln -fs "$PWD"/"$input" "$local_directory"/"$output_name"
     fi
     share
     continue
