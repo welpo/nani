@@ -98,7 +98,7 @@ random ()
   printf -v letters '%*s' $length ' ' ; letters="${letters// /X}"
 
   # If we want a random name...
-  if [[ -z "$preservename" ]]; then
+  if [[ -z "$preserve_name" ]]; then
     output_name="$(mktemp "$local_directory"/"$letters""$extension")" || continue
     output_name="${output_name##*/}"
     output_name="${output_name%.*}"
@@ -123,7 +123,7 @@ random ()
     # If -n, --name, -o or --original were used check output name doesn't exist on /nani/
     # If it does exist, prepend a random string of 5 characters (default, can be changed by adding or removing X's in the mktemp line)
     if [[ -e "$local_directory"/"${output_name// /_}""$extension" || -z "$output_name" ]]; then
-      output_name="$(mktemp "$local_directory"/XXXXX"$output_name""$extension")" || continue
+      output_name="$(mktemp "$local_directory"/XXXXX_"$output_name""$extension")" || continue
       output_name="${output_name##*/}"
       output_name="${output_name%.*}"
     fi
@@ -209,6 +209,7 @@ cleanvar ()
   extension=
   file_basename=
   file_inode=
+  inode_match=
   output_name="$chosen_name"
 }
 
@@ -282,7 +283,7 @@ while :; do
     --name=?*)
       output_name=${1#*=} # Delete everything up to "=" and assign the remainder.
       chosen_name=${1#*=} # Delete everything up to "=" and assign the remainder.
-      preservename=1
+      preserve_name=1
       ;;
     --name=)         # Handle the case of an empty --name=
       printf 'ERROR: "--name" requires a non-empty option argument.\n' >&2
@@ -292,7 +293,7 @@ while :; do
       if [[ -n "$2" ]]; then
         output_name=$2
         chosen_name=$2
-        preservename=1
+        preserve_name=1
         shift 2
         continue
       else
@@ -301,7 +302,7 @@ while :; do
       fi
       ;;
     -o|--original)
-      preservename=1
+      preserve_name=1
       ;;
     -p|--push)
       push=1
@@ -354,7 +355,7 @@ while :; do
             continue
           fi
           if [[ "${1:$i:1}" == "o" ]]; then
-            preservename=1
+            preserve_name=1
             continue
           fi
           if [[ "${1:$i:1}" == "p" ]]; then
@@ -518,7 +519,7 @@ for input in "$@"; do
       if [[ "$input" == *@(.abc|.abc7news|.academicearth|.addanime|.adobetv|.adultswim|.aftenposten|.aftonbladet|.airmozilla|.aljazeera|.alphaporno|.anitube|.anysex|.aol|.allocine|.aparat|.appleconnect|.appletrailers|.archiveorg|.ard|.arte|.atresplayer|.atttechchannel|.audiomack|.azubu|.baidu|.bambuser|.bandcamp|.bbc|.beeg|.behindkink|.beatportpro|.bet|.bild|.bilibili|.blinkx|.bliptv|.bloomberg|.bpb|.br|.breakcom|.brightcove|.buzzfeed|.byutv|.c56|.camdemy|.canal13cl|.canalplus|.canalc2|.cbs|.cbsnews|.cbssports|.ccc|.ceskatelevize|.channel9|.chaturbate|.chilloutzone|.chirbit|.cinchcast|.cinemassacre|.clipfish|.cliphunter|.clipsyndicate|.cloudy|.clubic|.cmt|.cnet|.cnn|.collegehumor|.collegerama|.comedycentral|.comcarcoff|.commonmistakes|.condenast|.cracked|.criterion|.crooksandliars|.crunchyroll|.cspan|.ctsnews|.dailymotion|.daum|.dbtv|.dcn|.dctp|.deezer|.dfb|.dhm|.dotsub|.douyutv|.dramafever|.dreisat|.drbonanza|.drtuber|.drtv|.dvtv|.dump|.dumpert|.defense|.discovery|.dropbox|.eagleplatform|.ebaumsworld|.echomsk|.ehow|.eighttracks|.einthusan|.eitb|.ellentv|.elpais|.embedly|.engadget|.eporner|.eroprofile|.escapist|.espn|.esri|.europa|.everyonesmixtape|.exfm|.expotv|.extremetube|.facebook|.faz|.fc2|.fczenit|.firstpost|.firsttv|.fivemin|.fivetv|.fktv|.flickr|.folketinget|.footyroom|.fourtube|.foxgay|.foxnews|.foxsports|.franceculture|.franceinter|.francetv|.freesound|.freespeech|.freevideo|.funnyordie|.gamekings|.gameone|.gamersyde|.gamespot|.gamestar|.gametrailers|.gazeta|.gdcvault|.generic|.gfycat|.giantbomb|.giga|.glide|.globo|.godtube|.goldenmoustache|.golem|.googleplus|.googlesearch|.gorillavid|.goshgay|.groupon|.hark|.hearthisat|.heise|.hellporno|.helsinki|.hentaistigma|.historicfilms|.history|.hitbox|.hornbunny|.hotnewhiphop|.howcast|.howstuffworks|.huffpost|.hypem|.iconosquare|.ign|.imdb|.imgur|.ina|.indavideo|.infoq|.instagram|.internetvideoarchive|.iprima|.iqiyi|.ir90tv|.ivi|.izlesene|.jadorecettepub|.jeuxvideo|.jove|.jukebox|.jpopsukitv|.kaltura|.kanalplay|.kankan|.karaoketv|.karrierevideos|.keezmovies|.khanacademy|.kickstarter|.keek|.kontrtube|.krasview|.ku6|.kuwo|.la7|.laola1tv|.lecture2go|.letv|.libsyn|.lifenews|.limelight|.liveleak|.livestream|.lnkgo|.lrt|.lynda|.m6|.macgamestore|.mailru|.malemotion|.mdr|.metacafe|.metacritic|.mgoon|.minhateca|.ministrygrid|.miomio|.mit|.mitele|.mixcloud|.mlb|.mpora|.moevideo|.mofosex|.mojvideo|.moniker|.mooshare|.morningstar|.motherless|.motorsport|.movieclips|.moviezine|.movshare|.mtv|.muenchentv|.musicplayon|.muzu|.mwave|.myspace|.myspass|.myvi|.myvideo|.myvidster|.nationalgeographic|.naver|.nba|.nbc|.ndr|.ndtv|.netzkino|.nerdcubed|.nerdist|.neteasemusic|.newgrounds|.newstube|.nextmedia|.nfb|.nfl|.nhl|.niconico|.ninegag|.noco|.normalboots|.nosvideo|.nova|.novamov|.nowness|.nowtv|.nowvideo|.npo|.nrk|.ntvde|.ntvru|.nytimes|.nuvid|.odnoklassniki|.oktoberfesttv|.onionstudios|.ooyala|.orf|.parliamentliveuk|.patreon|.pbs|.periscope|.philharmoniedeparis|.phoenix|.photobucket|.pinkbike|.planetaplay|.pladform|.played|.playfm|.playtvak|.playvid|.playwire|.pluralsight|.podomatic|.porn91|.pornhd|.pornhub|.pornotube|.pornovoisines|.pornoxo|.primesharetv|.promptfile|.prosiebensat1|.puls4|.pyvideo|.qqmusic|.quickvid|.r7|.radiode|.radiojavan|.radiobremen|.radiofrance|.rai|.rbmaradio|.rds|.redtube|.restudy|.reverbnation|.ringtv|.ro220|.rottentomatoes|.roxwel|.rtbf|.rte|.rtlnl|.rtl2|.rtp|.rts|.rtve|.rtvnh|.ruhd|.rutube|.rutv|.ruutu|.sandia|.safari|.sapo|.saveimport SaveFromIE|.sbs|.scivee|.screencast|.screencastomatic|.screenwavemedia|.senateisvp|.servingsys|.sexu|.sexykarma|.shahid|.shared|.sharesix|.sina|.slideshare|.slutload|.smotri|.snagfilms|.snotr|.sohu|.soompi|.soundcloud|.soundgasm|.southpark|.space|.spankbang|.spankwire|.spiegel|.spiegeltv|.spike|.stitcher|.sport5|.sportbox|.sportdeutschland|.srf|.srmediathek|.ssa|.stanfordoc|.steam|.streamcloud|.streamcz|.streetvoice|.sunporno|.svt|.swrmediathek|.syfy|.sztvhu|.tagesschau|.tapely|.tass|.teachertube|.teachingchannel|.teamcoco|.techtalks|.ted|.telebruxelles|.telecinco|.telegraaf|.telemb|.teletask|.tenplay|.testurl|.testtube|.tf1|.theonion|.theplatform|.thesixtyone|.thisamericanlife|.thisav|.tinypic|.tlc|.tmz|.tnaflix|.thvideo|.toutv|.toypics|.traileraddict|.trilulilu|.trutube|.tube8|.tubitv|.tudou|.tumblr|.tunein|.turbo|.tutv|.tv2|.tv4|.tvc|.tvigle|.tvp|.tvplay|.tweakers|.twentyfourvideo|.twentytwotracks|.twitch|.twitter|.ubu|.udemy|.udn|.ultimedia|.unistra|.urort|.ustream|.varzesh3|.vbox7|.veehd|.veoh|.vessel|.vesti|.vevo|.vgtv|.vh1|.vice|.viddler|.videodetective|.videolecturesnet|.videofyme|.videomega|.videopremium|.videott|.videoweed|.vidme|.vidzi|.vier|.viewster|.vimeo|.vimple|.vine|.viki|.vk|.vlive|.vodlocker|.voicerepublic|.vporn|.vrt|.vube|.vuclip|.vulture|.walla|.washingtonpost|.wat|.wayofthemaster|.wdr|.webofstories|.weibo|.wimp|.wistia|.worldstarhiphop|.wrzuta|.wsj|.xbef|.xboxclips|.xhamster|.xminus|.xnxx|.xstream|.xtube|.xuite|.xvideos|.xxxymovies|.yahoo|.yam|.yandexmusic|.yesjapan|.yinyuetai|.ynet|.youjizz|.youku|.youporn|.yourupload|.youtube|.zapiks|.zdf|.zingmp3|gyfcat|itunes.apple|youtu.be)* ]]; then
         ytfn=$(youtube-dl --get-filename "$input") || continue
         extension=".${ytfn##*.}"
-        if [[ -n "$preservename" ]]; then
+        if [[ -n "$preserve_name" ]]; then
           output_name="${ytfn%.*}"
           output_name="${output_name// /_}"
         else
@@ -555,11 +556,15 @@ for input in "$@"; do
   # Check if /nani/ already contains a hard link to input to  provide URL directly
   if [[ -z "$output_name" ]]; then
     file_inode=$(ls -id "$input" | cut -f1 -d " ")
-    output_name=$(find "$local_directory" -type f -inum "$file_inode" -exec basename {} \; -quit)
-    if [[ -n "$output_name" ]]; then
-      extension=
-      share
-      continue
+    inode_match=$(find "$local_directory" -type f -inum "$file_inode" -exec basename {} \; -quit)
+    if [[ -n "$inode_match" ]]; then
+      # When using -n or -o, ignore the inode match unless name is the same
+      if [[ -z "$preserve_name" || "$inode_match" == $(basename "$input") ]]; then
+        output_name="$inode_match"
+        extension=
+        share
+        continue
+      fi
     fi
   fi
 
