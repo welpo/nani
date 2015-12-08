@@ -76,10 +76,10 @@ xclip=1
 push=0
 
 # Your Pushbullet access token https://www.pushbullet.com/account Leave empty if you don't want to use Pushbullet.
-pushbullet_token=
+pushbullet_token=''
 
 # Your Pushover key https://pushover.net/ Leave empty if you don't want to use Pushover.
-pushover_key=
+pushover_key=''
 
 ############################## END CONFIGURATION ##############################
 
@@ -205,11 +205,11 @@ cleanup ()
 # Reset variables. Necessary for when it handles more than 1 file as argument
 cleanvar ()
 {
-  add_length=
-  extension=
-  file_basename=
-  file_inode=
-  inode_match=
+  add_length=''
+  extension=''
+  file_basename=''
+  file_inode=''
+  inode_match=''
   output_name="$chosen_name"
 }
 
@@ -561,7 +561,7 @@ for input in "$@"; do
       # When using -n or -o, ignore the inode match unless name is the same
       if [[ -z "$preserve_name" || "$inode_match" == $(basename "$input") ]]; then
         output_name="$inode_match"
-        extension=
+        extension=''
         share
         continue
       fi
@@ -594,7 +594,7 @@ for input in "$@"; do
   if [[ "$file_mime_type" == *@(directory|symlink)* ]]; then
     if [[ "$symbolic" != "1" ]]; then
       # Check if zip is installed
-      command -v zip >/dev/null 2>&1 || { echo >&2 "This script requires zip but it's not installed. Aborting."; continue; }
+      hash zip 2>/dev/null || { echo >&2 "This script requires zip but it's not installed. Aborting."; continue; }
       extension=".zip"
       random
       if [[ "$quiet" == 1 ]]; then
@@ -612,9 +612,9 @@ for input in "$@"; do
 
   if [[ "$file_mime_type" == *"flac"* && "$transcode" = "1" ]]; then
     # Check for dependencies metaflac, flac and lame
-    command -v metaflac >/dev/null 2>&1 || { echo >&2 "This script requires metaflac but it's not installed. Aborting."; continue; }
-    command -v flac >/dev/null 2>&1 || { echo >&2 "This script requires flac but it's not installed. Aborting."; continue; }
-    command -v lame >/dev/null 2>&1 || { echo >&2 "This script requires lame but it's not installed. Aborting."; continue; }
+    hash metaflac 2>/dev/null || { echo >&2 "This script requires metaflac but it's not installed. Aborting."; continue; }
+    hash flac 2>/dev/null || { echo >&2 "This script requires flac but it's not installed. Aborting."; continue; }
+    hash lame 2>/dev/null || { echo >&2 "This script requires lame but it's not installed. Aborting."; continue; }
     extension=".mp3"
     random
     # Get the tags
