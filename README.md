@@ -73,7 +73,7 @@ Some of the settings described above can be modified without editing the script,
 
 ```
     -a, --alias      Revert the hard link setting
-    -c, --cleanup    Remove all files on /nani/ (except `index.html`)
+    -c, --cleanup    Remove all files on /nani/ (except index.html)
     -h, --help       Display help and exit
     -i, --insert     Open nano to enter text. Saved in output directory as .txt
     -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules
