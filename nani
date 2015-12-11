@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 ##########################################################################
 # Copyright (C) 2015 welpo
@@ -70,6 +71,11 @@ transcode=1
 # Setting can be reversed by using the -x or --xclip flag
 xclip=1
 
+# Post-process COPIED files (not hard links nor system links)
+# Optimise png, tiff etc. files and remove EXIF data from pictures
+# Dependencies: exiftool (http://owl.phy.queensu.ca/~phil/exiftool/) and optipng (http://optipng.sourceforge.net/)
+post_process=1
+
 # Do you want to use push notifications?
 # Using the -p or --push flag will force them.
 # Remember to set the service's tokens/keys below for them to work.
@@ -132,6 +138,19 @@ random ()
   fi
 }
 
+post_process ()
+{
+  # Remove metadata
+  if hash exiftool 2>/dev/null && [[ "$file_mime_type" == *@(pdf|gif|jpeg|mp4|psd|tiff|png|mov)* ]]; then
+    exiftool -q -overwrite_original -all= "$full_output_path"
+  fi
+
+  # Optimise png, bmp, gif...
+  if hash optipng 2>/dev/null && [[ "$file_mime_type" == *@(png|bmp|gif|pnm|tiff)* ]]; then
+    optipng -q "$full_output_path"
+  fi
+}
+
 # Creates copy (hard link, symbolic link or just cp) to input file in /nani/
 copy ()
 {
@@ -144,6 +163,11 @@ copy ()
     ln -sf "$(realpath "$input")" "$local_directory"/"$output_name""$extension"
   else
     cp -f$hard_link_arg "$input" "$local_directory"/"$output_name""$extension"
+    # When creating new copies, process the files (if set)
+    if [[ -z "$hard_link_arg" && "$post_process" == "1" ]]; then
+      full_output_path="$local_directory/$output_name$extension"
+      post_process
+    fi
   fi
 }
 
