@@ -52,11 +52,12 @@ Different files will be processed differently (for example it can transcode .fla
 # Settings
 To modify these settings modify the script file, `nani`, using your favourite text editor.
 
-- `add_txt` Add `.txt` to files with no extension? Default is 1 (Yes).
+- `add_txt` Add `.txt` to files with no extension. Default is 1 (Yes).
 - `hardlink` Create hard links instead of new copies. Default is 1 (Yes).
 - `local_directory` Local directory where files will be stored (e.g. your public_html folder)
 - `minimum_length` Minimum number of characters for the output name. Default is 5.
 - `modify_text` If set to 1 (default) it will modify the extension of files storing text (`.php`, `.html`, `.tex`...) to `.txt`.
+- `post_process` Call exiftool & optipng to remove metadata and compress files, only on new copies. Default is 1 (Post-process).
 - `push` Send push notification (through Pushbullet and/or Pushover) with the URLs. Default is 0 (Don't send them).
 - `pushbullet_token` Your Pushbullet access token. Leave empty if you don't want to use Pushbullet.
 - `pushover_key` Your Pushover key. Leave empty if you don't want to use Pushover.
