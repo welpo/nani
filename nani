@@ -53,7 +53,7 @@ random_length=2
 
 # Be quiet. If set to 1 it will only output the link. Default is 1 (be quiet).
 # You will want this to be set to 1 to integrate it with other software/scripts
-# Can be forced using the -q or --quiet flag
+# Can be reversed using the -q or --quiet flag
 quiet=1
 
 # Do you want to add .txt to files with no extension? Default is 1 (Yes).
@@ -140,14 +140,17 @@ random ()
 
 post_process ()
 {
+  if [[ "$quiet" == 1 ]]; then
+    post_process_quiet="-q"
+  fi
   # Remove metadata
   if hash exiftool 2>/dev/null && [[ "$file_mime_type" == *@(pdf|gif|jpeg|mp4|psd|tiff|png|mov)* ]]; then
-    exiftool -q -overwrite_original -all= "$full_output_path"
+    exiftool $post_process_quiet -overwrite_original -all= "$full_output_path"
   fi
 
   # Optimise png, bmp, gif...
   if hash optipng 2>/dev/null && [[ "$file_mime_type" == *@(png|bmp|gif|pnm|tiff)* ]]; then
-    optipng -q "$full_output_path"
+    optipng $post_process_quiet "$full_output_path"
   fi
 }
 
@@ -265,7 +268,7 @@ showhelp ()
   echo "    -n, --name=      Use custom name (e.g. nani -n DesiredName <file>)"
   echo "    -o, --original   Preserve original file name"
   echo "    -p, --push       Send push notification"
-  echo "    -q, --quiet      Force quiet mode"
+  echo "    -q, --quiet      Revert the quiet setting"
   echo "    -s, --string=    Force a certain string length (e.g. nani -s 32 <file>)"
   echo "    -t, --transcode  Revert the transcode setting"
   echo "    -x, --xclip      Revert the xclip setting"
@@ -332,7 +335,7 @@ while :; do
       push=1
       ;;
     -q|--quiet)
-      quiet=1
+      quiet=$((!quiet))
       ;;
     -s)       # Takes an option argument, ensuring it has been specified.
       if [[ -n "$2" ]]; then
@@ -387,7 +390,7 @@ while :; do
             continue
           fi
           if [[ "${1:$i:1}" == "q" ]]; then
-            quiet=1
+            quiet=$((!quiet))
             continue
           fi
           if [[ "${1:$i:1}" == "t" ]]; then

@@ -82,7 +82,7 @@ Some of the settings described above can be modified without editing the script,
     -n, --name=      Use custom name (e.g. nani --name=DesiredName <file> or nani -n DesiredName <file>)
     -o, --original   Preserve original file name
     -p, --push       Send push notification
-    -q, --quiet      Force quiet mode
+    -q, --quiet      Reverse the quiet setting
     -s, --string=    Force a certain string length (e.g. nani --string=32 <file> or nani -n 32 <file>)
     -t, --transcode  Revert the transcode setting
     -x, --xclip      Revert the xclip setting
