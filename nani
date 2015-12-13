@@ -538,7 +538,8 @@ if ! [[ -t 0 ]]; then
   if [[ "$extension" == ".asc" ]]; then extension=.txt; fi
 
   random
-  mv "$cat_mktemp" "$local_directory/$output_name$extension"
+  cp -f "$cat_mktemp" "$local_directory/$output_name$extension"
+  rm "$cat_mktemp"
   share
   clipboard
   exit
