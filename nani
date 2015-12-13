@@ -525,9 +525,20 @@ fi
 
 # Check if input comes from stdin, if so, just cat input to /nani/
 if ! [[ -t 0 ]]; then
-  extension=".txt"
+  # Store file somewhere first to check its extension
+  cat_mktemp=$(mktemp)
+  cat > "$cat_mktemp"
+
+  # Set the extension reading the --mime-type and comparing it to /etc/mime.types
+  extension=.$(grep "$(file -b --mime-type $cat_mktemp)" /etc/mime.types | awk '{print $2}' | cut -d$'\n' -f1)
+
+  # Handle some exceptions
+  if [[ "$extension" == "." ]]; then printf '%s\n' "Nothing to do." && exit 1; fi
+  if [[ "$extension" == ".mpga" ]]; then extension=.mp3; fi
+  if [[ "$extension" == ".asc" ]]; then extension=.txt; fi
+
   random
-  cat > "$local_directory"/"$output_name""$extension" || exit
+  mv "$cat_mktemp" "$local_directory/$output_name$extension"
   share
   clipboard
   exit
@@ -621,7 +632,7 @@ for input in "$@"; do
   if [[ "$file_mime_type" == *@(directory|symlink)* ]]; then
     if [[ "$symbolic" != "1" ]]; then
       # Check if zip is installed
-      hash zip 2>/dev/null || { echo >&2 "This script requires zip but it's not installed. Aborting."; continue; }
+      hash zip 2>/dev/null || { echo >&2 "zip is not installed. Use symbolic links or install it. Aborting."; continue; }
       extension=".zip"
       random
       if [[ "$quiet" == 1 ]]; then
@@ -639,9 +650,9 @@ for input in "$@"; do
 
   if [[ "$file_mime_type" == *"flac"* && "$transcode" = "1" ]]; then
     # Check for dependencies metaflac, flac and lame
-    hash metaflac 2>/dev/null || { echo >&2 "This script requires metaflac but it's not installed. Aborting."; continue; }
-    hash flac 2>/dev/null || { echo >&2 "This script requires flac but it's not installed. Aborting."; continue; }
-    hash lame 2>/dev/null || { echo >&2 "This script requires lame but it's not installed. Aborting."; continue; }
+    hash metaflac 2>/dev/null || { echo >&2 "Transcoding requires metaflac but it's not installed. Aborting."; continue; }
+    hash flac 2>/dev/null || { echo >&2 "Transcoding requires flac but it's not installed. Aborting."; continue; }
+    hash lame 2>/dev/null || { echo >&2 "Transcoding requires lame but it's not installed. Aborting."; continue; }
     extension=".mp3"
     random
     # Get the tags
