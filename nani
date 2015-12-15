@@ -428,12 +428,12 @@ while :; do
 done
 
 # Create the directory where the files will go, in your public folder
-mkdir -p "$local_directory" || exit
+mkdir -p -- "$local_directory" || exit
 
 # Create index.html in the output folder, to avoid directory listing
 if ! [[ -a "$local_directory"/index.html ]]; then
   #touch "$local_directory"/index.html
-  echo "<html><meta charset="utf-8"><head><title>何これ?</title></head><body><div align=center><h1>nani kore!?</h1></div></body></html>" > "$local_directory"/index.html
+  echo '<html><meta charset="utf-8"><head><title>何これ?</title></head><body><div align=center><h1>nani kore!?</h1></div></body></html>' > "$local_directory/index.html"
 fi
 
 # Check settings have valid values
@@ -513,10 +513,11 @@ fi
 if [[ "$insert_mode" == 1 ]]; then
   extension=.txt
   random
-  nano -t "$local_directory"/"$output_name""$extension" || exit
+  nano -t -- "$local_directory"/"$output_name""$extension" || exit
   # vim "$local_directory"/"$output_name""$extension"
   # cat > "$local_directory"/"$output_name""$extension"
   # Check output actually exists, just in case nano is closed before entering text
+  sleep 10
   [[ ! -f "$local_directory"/"$output_name""$extension" ]] && exit 1
   share
   clipboard
@@ -571,7 +572,7 @@ for input in "$@"; do
         share
         continue
       fi
-      mapfile -t http < <(wget --spider -S --quiet "$input" 2>&1)
+      mapfile -t http < <(wget --spider -S --quiet -- "$input" 2>&1)
       # Check HTTP status is 200 OK.
       if ! [[ "${http[*]}" == *@(1.1 200|302 Found|1.1 302 Moved Temporarily)* ]]; then echo Something went wrong. Check your link and try again.; continue; fi
       for i in "${http[@]}"; do if [[ $i = *"Content-Type: "* ]]; then file_mime_type="${i##*/}"; break; fi; done
@@ -584,7 +585,7 @@ for input in "$@"; do
       if [[ $quiet == 1 ]]; then
         wgetquiet="q"
       fi
-      wget --no-use-server-timestamps -"$wgetquiet"O "$local_directory"/"$output_name""$extension" "$input"
+      wget --no-use-server-timestamps -"$wgetquiet"O -- "$local_directory"/"$output_name""$extension" "$input"
       share
       continue
     fi
@@ -594,11 +595,11 @@ for input in "$@"; do
 
   # Check if /nani/ already contains a hard link to input to  provide URL directly
   if [[ -z "$output_name" ]]; then
-    file_inode=$(ls -id "$input" | cut -f1 -d " ")
+    file_inode=$(ls -id -- "$input" | cut -f1 -d " ")
     inode_match=$(find "$local_directory" -type f -inum "$file_inode" -exec basename {} \; -quit)
     if [[ -n "$inode_match" ]]; then
       # When using -n or -o, ignore the inode match unless name is the same
-      if [[ -z "$preserve_name" || "$inode_match" == $(basename "$input") ]]; then
+      if [[ -z "$preserve_name" || "$inode_match" == $(basename -- "$input") ]]; then
         output_name="$inode_match"
         extension=''
         share
@@ -639,11 +640,11 @@ for input in "$@"; do
       if [[ "$quiet" == 1 ]]; then
         zq=" -q"
       fi
-      zip -r0$zq - "$input" > "$local_directory"/"$output_name""$extension" || continue
+      zip -r0$zq - -- "$input" > "$local_directory"/"$output_name""$extension" || continue
     else
       extension=""
       random
-      ln -fs "$PWD"/"$input" "$local_directory"/"$output_name"
+      ln -fs -- "$PWD"/"$input" "$local_directory"/"$output_name"
     fi
     share
     continue
@@ -665,10 +666,10 @@ for input in "$@"; do
     DATE=$(metaflac "$input" --show-tag=DATE | sed s/.*=//g)
     # Stream flac into the lame encoder, using -s and --quiet for the arguments if quiet mode is enabled:
     if [[ "$quiet" == 1 ]]; then
-      qf="-s "
+      qf="-s"
       ql="--quiet "
     fi
-    flac -c -d $qf"$input" | lame -V0 --vbr-new --add-id3v2 --pad-id3v2 $ql--ignore-tag-errors\
+    flac -c -d "$qf" -- "$input" | lame -V0 --vbr-new --add-id3v2 --pad-id3v2 $ql--ignore-tag-errors\
       --ta "$ARTIST" --tt "$TITLE" --tl "$ALBUM"  --tg "${GENRE:-12}" \
       --tn "${TRACKNUMBER:-0}" --ty "$DATE" - "$local_directory"/"$output_name""$extension" || continue
     share
