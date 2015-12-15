@@ -14,7 +14,7 @@ You will need an HTTP server (like Apache or Nginx) with a site set up (this is 
 
 * Add a cron task to automatically remove files older than 1 day
     * `crontab -e` and add this line, which performs the check every hour:
-    * `00 * * * *      find "$HOME/www/$(whoami).$(hostname -f)"/public_html/nani/ -mindepth 1 ! -path '*/k/*' -ctime +0 ! -name "index.html" ! -name "k" -delete`
+    * `00 * * * *      find "/path/to/nani/ -mindepth 1 ! -path '*/k/*' -ctime +0 ! -name "index.html" ! -name "k" -delete`
 * Set up everything else to your liking.
 
 # Usage
