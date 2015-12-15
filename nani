@@ -163,9 +163,9 @@ copy ()
   # -l to save space (hard link) and -f to overwrite the mktemp file
   # symbolic link when using SSHFS or cp -l errors out (different mounts)
   if [[ "$symbolic" == "1" || "$sshfs" == "1" ]]; then
-    ln -sf "$(realpath "$input")" "$local_directory"/"$output_name""$extension"
+    ln -sf -- "$(realpath "$input")" "$local_directory"/"$output_name""$extension"
   else
-    cp -f$hard_link_arg "$input" "$local_directory"/"$output_name""$extension"
+    cp -f$hard_link_arg -- "$input" "$local_directory"/"$output_name""$extension"
     # When creating new copies, process the files (if set)
     if [[ -z "$hard_link_arg" && "$post_process" == "1" ]]; then
       full_output_path="$local_directory/$output_name$extension"
@@ -538,8 +538,8 @@ if ! [[ -t 0 ]]; then
   if [[ "$extension" == ".asc" ]]; then extension=.txt; fi
 
   random
-  cp -f "$cat_mktemp" "$local_directory/$output_name$extension"
-  rm "$cat_mktemp"
+  cp -f -- "$cat_mktemp" "$local_directory/$output_name$extension"
+  rm -- "$cat_mktemp"
   share
   clipboard
   exit
