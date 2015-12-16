@@ -79,11 +79,11 @@ Some of the settings described above can be modified without editing the script,
     -i, --insert     Open nano to enter text. Saved in output directory as .txt
     -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules
     -l, --list       List files in output directory /nani/
-    -n, --name=      Use custom name (e.g. nani --name=DesiredName <file> or nani -n DesiredName <file>)
+    -n, --name       Use custom name (e.g. nani --name=DesiredName <file> or nani -n DesiredName <file>)
     -o, --original   Preserve original file name
     -p, --push       Send push notification
     -q, --quiet      Reverse the quiet setting
-    -s, --string=    Force a certain string length (e.g. nani --string=32 <file> or nani -n 32 <file>)
+    -s, --string     Force a certain string length (e.g. nani --string=32 <file> or nani -n 32 <file>)
     -t, --transcode  Revert the transcode setting
     -x, --xclip      Revert the xclip setting
     -y, --symbolic   Create a symbolic link for files and directories

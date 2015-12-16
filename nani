@@ -265,11 +265,11 @@ showhelp ()
   echo "    -i, --insert     Open nano to enter text. Saved in output directory as .txt"
   echo "    -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules"
   echo "    -l, --list       List files in output directory /nani/"
-  echo "    -n, --name=      Use custom name (e.g. nani -n DesiredName <file>)"
+  echo "    -n, --name       Use custom name (e.g. nani -n DesiredName <file>)"
   echo "    -o, --original   Preserve original file name"
   echo "    -p, --push       Send push notification"
   echo "    -q, --quiet      Revert the quiet setting"
-  echo "    -s, --string=    Force a certain string length (e.g. nani -s 32 <file>)"
+  echo "    -s, --string     Force a certain string length (e.g. nani -s 32 <file>)"
   echo "    -t, --transcode  Revert the transcode setting"
   echo "    -x, --xclip      Revert the xclip setting"
   echo "    -y, --symbolic   Create a symbolic link for files and directories"
@@ -316,7 +316,7 @@ while :; do
       printf 'ERROR: "--name" requires a non-empty option argument.\n' >&2
       exit 1
       ;;
-    -n)       # Takes an option argument, ensuring it has been specified.
+    -n|--name)       # Takes an option argument, ensuring it has been specified.
       if [[ -n "$2" ]]; then
         output_name=$2
         chosen_name=$2
@@ -337,7 +337,7 @@ while :; do
     -q|--quiet)
       quiet=$((!quiet))
       ;;
-    -s)       # Takes an option argument, ensuring it has been specified.
+    -s|--string)       # Takes an option argument, ensuring it has been specified.
       if [[ -n "$2" ]]; then
         setlength=1
         minimum_length="$2"
@@ -572,7 +572,7 @@ for input in "$@"; do
         share
         continue
       fi
-      mapfile -t http < <(wget --spider -S --quiet -- "$input" 2>&1)
+      mapfile -t http < <(wget --spider -S --quiet "$input" 2>&1)
       # Check HTTP status is 200 OK.
       if ! [[ "${http[*]}" == *@(1.1 200|302 Found|1.1 302 Moved Temporarily)* ]]; then echo Something went wrong. Check your link and try again.; continue; fi
       for i in "${http[@]}"; do if [[ $i = *"Content-Type: "* ]]; then file_mime_type="${i##*/}"; break; fi; done
@@ -585,7 +585,7 @@ for input in "$@"; do
       if [[ $quiet == 1 ]]; then
         wgetquiet="q"
       fi
-      wget --no-use-server-timestamps -"$wgetquiet"O -- "$local_directory"/"$output_name""$extension" "$input"
+      wget --no-use-server-timestamps -"$wgetquiet"O "$local_directory"/"$output_name""$extension" "$input"
       share
       continue
     fi
