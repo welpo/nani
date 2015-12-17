@@ -22,11 +22,11 @@ set -e
 
 # Local directory where files will be stored (should be inside your public_html folder):
 # Do NOT use a trailing slash
-local_directory="$HOME/www/$(whoami).$(hostname -f)/public_html/nani"
+local_directory="$HOME/www/$(whoami).$(hostname -f)/public_html/${0##*/}"
 
 # URL format (example: https://yoursite.com/nani)
 # Do NOT use a trailing slash
-url_format=https://$(hostname -f)/$(whoami)/nani
+url_format="https://$(hostname -f)/$(whoami)/${0##*/}"
 
 # Create hard links instead of new copies? Default is 1 (Yes)
 # Can be reverted by using the -a, --alias flag.
@@ -244,7 +244,7 @@ cleanvar ()
 showhelp ()
 {
   echo
-  echo "Usage: nani [options] <infile>"
+  echo "Usage: ${0##*/} [options] <infile>"
   echo "Provides public URL from input."
   echo
   echo "Input handling:"
@@ -255,21 +255,21 @@ showhelp ()
   echo "    URL to video (e.g: youtube)     Downloaded using youtube-dl"
   echo "    Other URLs                      Downloaded using wget"
   echo
-  echo "Modify the first lines of the script to change how nani behaves: quiet mode,"
+  echo "Modify the first lines of the script to change how ${0##*/} behaves: quiet mode,"
   echo "enabling/disabling transcoding, length of the string, extension truncation..."
   echo
   echo "Settings and options:"
   echo "    -a, --alias      Revert the hard link setting"
-  echo "    -c, --cleanup    Remove all files on /nani/ except index.html"
+  echo "    -c, --cleanup    Remove all files on /${0##*/}/ except index.html"
   echo "    -h, --help       Display this help and exit"
   echo "    -i, --insert     Open nano to enter text. Saved in output directory as .txt"
-  echo "    -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules"
-  echo "    -l, --list       List files in output directory /nani/"
-  echo "    -n, --name       Use custom name (e.g. nani -n DesiredName <file>)"
+  echo "    -k, --keep       Output dir becomes /${0##*/}/k/, to set different cleanup rules"
+  echo "    -l, --list       List files in output directory /${0##*/}/"
+  echo "    -n, --name       Use custom name (e.g. ${0##*/} -n DesiredName <file>)"
   echo "    -o, --original   Preserve original file name"
   echo "    -p, --push       Send push notification"
   echo "    -q, --quiet      Revert the quiet setting"
-  echo "    -s, --string     Force a certain string length (e.g. nani -s 32 <file>)"
+  echo "    -s, --string     Force a certain string length (e.g. ${0##*/} -s 32 <file>)"
   echo "    -t, --transcode  Revert the transcode setting"
   echo "    -x, --xclip      Revert the xclip setting"
   echo "    -y, --symbolic   Create a symbolic link for files and directories"
@@ -304,7 +304,7 @@ while :; do
       printf "Files in $local_directory/:\n\n"
       ls --color=auto "$local_directory"
       extension=".zip"
-      printf '\nRun nani -c or nani --cleanup to remove all files except index.html\n'
+      printf "\nRun ${0##*/} -c or ${0##*/} --cleanup to remove all files except index.html\n"
       exit
       ;;
     --name=?*)
@@ -368,45 +368,42 @@ while :; do
     -?*)   # This below allows for grouped options, example: nani -xot File1
       if [[ "${#1}" -ge "3" && ${1:1:1} != "-" ]]; then
         for (( i=1; i<${#1}; i++ )); do
-          if [[ "${1:$i:1}" == "a" ]]; then
-            hard_link=$((!hard_link))
-            continue
-          fi
-          if [[ "${1:$i:1}" == "i" ]]; then
-            insert_mode="1"
-            continue
-          fi
-          if [[ "${1:$i:1}" == "k" ]]; then
-            local_directory+="/k"
-            url_format+="/k"
-            continue
-          fi
-          if [[ "${1:$i:1}" == "o" ]]; then
-            preserve_name=1
-            continue
-          fi
-          if [[ "${1:$i:1}" == "p" ]]; then
-            push=1
-            continue
-          fi
-          if [[ "${1:$i:1}" == "q" ]]; then
-            quiet=$((!quiet))
-            continue
-          fi
-          if [[ "${1:$i:1}" == "t" ]]; then
-            transcode=$((!transcode))
-            continue
-          fi
-          if [[ "${1:$i:1}" == "x" ]]; then
-            xclip=$((!xclip))
-            continue
-          fi
-          if [[ "${1:$i:1}" == "y" ]]; then
-            symbolic=1
-            continue
-          fi
-          ignored_options="$ignored_options""${1:$i:1}"
-          continue
+          case ${1:$i:1} in
+            a)
+              hard_link=$((!hard_link))
+              ;;
+            i)
+              insert_mode="1"
+              ;;
+            k)
+              local_directory+="/k"
+              url_format+="/k"
+              ;;
+            o)
+              preserve_name=1
+              ;;
+            p)
+              push=1
+              ;;
+            q)
+              quiet=$((!quiet))
+              ;;
+            t)
+              transcode=$((!transcode))
+              ;;
+            x)
+              xclip=$((!xclip))
+              ;;
+            y)
+              symbolic=1
+              continue
+              ;;
+            ?*)
+              ignored_options="$ignored_options""${1:$i:1}"
+              ;;
+            *)
+              break
+          esac
         done
         if [[ -n "$ignored_options" ]]; then
           printf 'WARN: Unknown options (ignored): %s\n' "$ignored_options" >&2
@@ -545,7 +542,7 @@ if ! [[ -t 0 ]]; then
   clipboard
   exit
 elif [[ "$#" -lt 1 ]]; then
-  printf "Usage:\n  nani [options] <infile>\n\nFor more information try\n  nani --help\n"
+  printf "Usage:\n  ${0##*/} [options] <infile>\n\nFor more information try\n  ${0##*/} --help\n"
   exit 1
 fi
 
