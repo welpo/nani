@@ -430,7 +430,7 @@ mkdir -p -- "$local_directory" || exit
 # Create index.html in the output folder, to avoid directory listing
 if ! [[ -a "$local_directory"/index.html ]]; then
   #touch "$local_directory"/index.html
-  echo '<html><meta charset="utf-8"><head><title>何これ?</title></head><body><div align=center><h1>nani kore!?</h1></div></body></html>' > "$local_directory/index.html"
+  echo '<html><meta charset="utf-8"><head><title>何これ?</title></head><style> html, body{  margin:0;  padding:0;  height:100%}body{  position: relative;}.bottom a {    position: fixed;    z-index: 100;    bottom: 0;    left: 0;    width: 100%;    color: #3399D0;    text-decoration: none;}.text{    margin-right: 10%;    margin-left: 10%;    position: relative;    top: 50%;    transform: translate(0, -50%);    color: #242424;    text-align: center;       font-size: 24px;    font-size: 3.1vw;    text-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5);    -webkit-touch-callout: none;    -webkit-user-select: none;    -khtml-user-select: none;    -moz-user-select: none;    -ms-user-select: none;    user-select: none;}</style></head><body><div class="text">nani kore!?</div>    <div class="bottom"><a href="https://github.com/welpo/nani">View the Project on GitHub — <small>welpo/nani</small></a></div></body></html>' > "$local_directory/index.html"
 fi
 
 # Check settings have valid values
