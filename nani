@@ -76,6 +76,10 @@ xclip=1
 # Dependencies: exiftool (http://owl.phy.queensu.ca/~phil/exiftool/) and optipng (http://optipng.sourceforge.net/)
 post_process=1
 
+# Send a notification using notify-send when nani is done
+# Makes sense when used in a desktop (using SSHFS as the output, for example)
+notify=1
+
 # Do you want to use push notifications?
 # Using the -p or --push flag will force them.
 # Remember to set the service's tokens/keys below for them to work.
@@ -202,6 +206,18 @@ share ()
   urllist+=( "$url" )
 }
 
+notify ()
+{
+  if [[ "${#urllist[@]}" -le 1 ]]; then
+    notify-send ' File uploaded' "$url" --icon=face-wink
+  else
+    notify-send " ${#urllist[@]} files uploaded" --icon=face-wink
+    if hash paplay 2>/dev/null && [[ -f /usr/share/sounds/gnome/default/alerts/glass.ogg ]]; then
+      paplay '/usr/share/sounds/gnome/default/alerts/glass.ogg'
+    fi
+  fi
+}
+
 clipboard ()
 {
   # Get links to clipboard depending on the OS
@@ -220,6 +236,9 @@ clipboard ()
   # For OSX
   if [[ "$system" == *"Darwin"* ]]; then
     { IFS=$'\n'; printf %s "${urllist[*]}"; } | pbcopy
+  fi
+  if [[ "$notify" == "1" ]]; then
+    notify
   fi
 }
 
@@ -266,6 +285,7 @@ showhelp ()
   echo "    -k, --keep       Output dir becomes /${0##*/}/k/, to set different cleanup rules"
   echo "    -l, --list       List files in output directory /${0##*/}/"
   echo "    -n, --name       Use custom name (e.g. ${0##*/} -n DesiredName <file>)"
+  echo "    -N, --notify     Revert the notify option"
   echo "    -o, --original   Preserve original file name"
   echo "    -p, --push       Send push notification"
   echo "    -q, --quiet      Revert the quiet setting"
@@ -328,6 +348,9 @@ while :; do
         exit 1
       fi
       ;;
+    -N|--notify)
+      notify=$((!notify))
+      ;;
     -o|--original)
       preserve_name=1
       ;;
@@ -378,6 +401,9 @@ while :; do
             k)
               local_directory+="/k"
               url_format+="/k"
+              ;;
+            N)
+              notify=$((!notify))
               ;;
             o)
               preserve_name=1
@@ -504,6 +530,11 @@ fi
 if [[ $xclip != [01] ]]; then
   echo "The value set for \$xclip is not valid. It must be either 0 or 1."
   exit 1
+fi
+
+# Set notify to 0 if notify-send is not installed
+if ! hash notify-send 2>/dev/null; then
+  notify=0
 fi
 
 # Insert mode:

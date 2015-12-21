@@ -56,6 +56,7 @@ To modify these settings modify the script file, `nani`, using your favourite te
 - `hardlink` Create hard links instead of new copies. Default is 1 (Yes).
 - `local_directory` Local directory where files will be stored (e.g. your public_html folder)
 - `minimum_length` Minimum number of characters for the output name. Default is 5.
+- `notify` Send a notification using `notify-send` when nani is done. Makes sense if using on a desktop (using SSHFS as the output directory, for example). Default is 1 (On), but it will be set to 0 if `notify-send` is not installed in the system.
 - `modify_text` If set to 1 (default) it will modify the extension of files storing text (`.php`, `.html`, `.tex`...) to `.txt`.
 - `post_process` Call exiftool & optipng to remove metadata and compress files, only on new copies. Default is 1 (Post-process).
 - `push` Send push notification (through Pushbullet and/or Pushover) with the URLs. Default is 0 (Don't send them).
@@ -80,6 +81,7 @@ Some of the settings described above can be modified without editing the script,
     -k, --keep       Output dir becomes /nani/k/, to set different cleanup rules
     -l, --list       List files in output directory /nani/
     -n, --name       Use custom name (e.g. nani --name=DesiredName <file> or nani -n DesiredName <file>)
+    -N, --notify     Revert the notify option
     -o, --original   Preserve original file name
     -p, --push       Send push notification
     -q, --quiet      Reverse the quiet setting
