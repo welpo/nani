@@ -3,12 +3,23 @@
 
 It accepts local files as input as well as URLs. Read more about the process in the **Usage** and **Input handling** sections (or read the script).
 
-# Install
-You will need an HTTP server (like Apache or Nginx) with a site set up (this is where the files will go).
+# Dependencies
+You will need a properly set up web server of your choosing (like Apache, IIS or nginx) and the basic utilities most GNU/Linux distributions include: the GNU Core Utilities (`cp`, `mv` `mktemp`...), the GNU C Library to use `file`, `bash`...
 
+**Optional dependencies**
+* `zip` to compress/store directories.
+* `lame`, `flac` and `metaflac` to transcode FLAC to MP3.
+* [youtube-dl](https://github.com/rg3/youtube-dl) to download videos from several sites.
+* `xclip` to get the URL to your local clipboard
+* [exiftool](http://owl.phy.queensu.ca/~phil/exiftool/) to remove metadata from certain files (`pdf`, `jpg`, `png`, `mp4`...) — this will only happen when a new copy is created (so when alias=0).
+* [optipng](http://optipng.sourceforge.net/) to losslessly compress `png`, `bmp`, `gif`, `pnm` and `tiff` files — this will only happen when a new copy is created (so when alias=0).
+* `notify-send` to get a local notification (useful if used in a desktop)
+* `paplay` to play a notification sound after the upload is done
+
+# Install
 * Place `nani` somewhere in your PATH, like `~/bin`
 * Make it executable: `chmod +x nani`
-* Modify the `local_directory` and `url_format` variables in the first lines of the script.
+* Modify the `local_directory` (the path to your web server site) and `url_format` (the URL that refers to this path) variables in the first lines of the script.
 
 **Optional**
 
