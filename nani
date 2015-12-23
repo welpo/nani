@@ -542,6 +542,10 @@ if [[ "$insert_mode" == 1 ]]; then
   extension=.txt
   random
   nano -t -- "$local_directory"/"$output_name""$extension" || exit
+  # Check file contains something (meaning nano wasn't closed immediately without inputting text)
+  if [[ ! -s "$local_directory/$output_name$extension" ]]; then
+    rm "$local_directory/$output_name$extension" && exit
+  fi
   # vim "$local_directory"/"$output_name""$extension"
   # cat > "$local_directory"/"$output_name""$extension"
   # Check output actually exists, just in case nano is closed before entering text
