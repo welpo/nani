@@ -212,9 +212,10 @@ notify ()
     notify-send ' File uploaded' "$url" --icon=face-wink
   else
     notify-send " ${#urllist[@]} files uploaded" --icon=face-wink
-    if hash paplay 2>/dev/null && [[ -f /usr/share/sounds/gnome/default/alerts/glass.ogg ]]; then
-      paplay '/usr/share/sounds/gnome/default/alerts/glass.ogg'
-    fi
+    # Sound notifications, uncomment three lines below
+    # if hash paplay 2>/dev/null && [[ -f /usr/share/sounds/gnome/default/alerts/glass.ogg ]]; then
+    #   paplay '/usr/share/sounds/gnome/default/alerts/glass.ogg'
+    # fi
   fi
 }
 
@@ -222,6 +223,11 @@ clipboard ()
 {
   # Get links to clipboard depending on the OS
   system="$(uname -s)"
+
+  # Try to use primary clipboard with xsel
+  if hash xsel 2>/dev/null; then
+    { IFS=$'\n'; printf %s "${urllist[*]}"; } | xsel --input --primary
+  fi
 
   # If xclip is installed, and you started ssh with "-X", the following line would get the URL on your local clipboard
   if [[ "$xclip" == 1 ]] && [[ -n "$DISPLAY" ]] && hash xclip 2>/dev/null; then
@@ -237,6 +243,7 @@ clipboard ()
   if [[ "$system" == *"Darwin"* ]]; then
     { IFS=$'\n'; printf %s "${urllist[*]}"; } | pbcopy
   fi
+
   if [[ "$notify" == "1" ]]; then
     notify
   fi
