@@ -576,6 +576,7 @@ if ! [[ -t 0 ]]; then
   if [[ "$extension" == "." ]]; then printf '%s\n' "Nothing to do." && exit 1; fi
   if [[ "$extension" == ".mpga" ]]; then extension=.mp3; fi
   if [[ "$extension" == ".asc" ]]; then extension=.txt; fi
+  if [[ "$extension" == ".plain" ]]; then extension=.txt; fi
 
   random
   cp -f -- "$cat_mktemp" "$local_directory/$output_name$extension"
