@@ -1,0 +1,70 @@
+# Local directory where files will be stored (should be inside your public_html folder):
+# Do NOT use a trailing slash
+local_directory="$HOME/www/$(whoami).$(hostname -f)/public_html/$script_name"
+
+# URL format (example: https://yoursite.com/nani)
+# Do NOT use a trailing slash
+url_format="https://$(hostname -f)/$(whoami)/$script_name"
+
+# Create hard links instead of new copies? Default is 1 (Yes)
+# Can be reverted by using the -a, --alias flag.
+hard_link=1
+
+# Create symbolic links instead of new copies? Default is 0 (No)
+# This is useful if your output dir is on a different mount
+# Can be forced using the -y, --symbolic flag
+symbolic=0
+
+# Create symbolic links for everything except directories
+# Useful when output dir is in a different mount, (e.g. SSHFS)
+sshfs=0
+
+# Minimum number of characters for the output name. Default is 5.
+# Can be overriden by using the -l X or --length=X flag.
+minimum_length=5
+
+# Maximum number of extra characters the length will have.
+# The final length will be a number between length and length+random_length
+# Will be ignored if the -s or --string flag is used.
+# Can be left empty if you don't wish to randomise the length.
+random_length=2
+
+# Be quiet. If set to 1 it will only output the link. Default is 1 (be quiet).
+# You will want this to be set to 1 to integrate it with other software/scripts
+# Can be reversed using the -q or --quiet flag
+quiet=1
+
+# Do you want to add .txt to files with no extension? Default is 1 (Yes).
+add_txt=1
+
+# Do you want to change the extension of files storing text (.php, .html, .tex...) to .txt? Default is 1 (Yes).
+modify_text=1
+
+# Do you want to transcode flac to MP3 V0? Default is 1 (Yes). Requires metaflac, flac and lame.
+# Setting can be reversed by using the -t or --transcode flag
+transcode=1
+
+# Use xclip to get the URL to your local clipboard if xclip is set up and you ran SSH with the -X flag. Default is 1 (Enabled).
+# You will want this to be set to 0 to integrate it with other software/scripts
+# Setting can be reversed by using the -x or --xclip flag
+xclip=1
+
+# Post-process COPIED files (not hard links nor system links)
+# Optimise png, tiff etc. files and remove EXIF data from pictures
+# Dependencies: exiftool (http://owl.phy.queensu.ca/~phil/exiftool/) and optipng (http://optipng.sourceforge.net/)
+post_process=1
+
+# Send a notification using notify-send when nani is done
+# Makes sense when used in a desktop (using SSHFS as the output, for example)
+notify=1
+
+# Do you want to use push notifications?
+# Using the -p or --push flag will force them.
+# Remember to set the service's tokens/keys below for them to work.
+push=0
+
+# Your Pushbullet access token https://www.pushbullet.com/account Leave empty if you don't want to use Pushbullet.
+pushbullet_token=''
+
+# Your Pushover key https://pushover.net/ Leave empty if you don't want to use Pushover.
+pushover_key=''
