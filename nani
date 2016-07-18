@@ -2,7 +2,7 @@
 set -e
 
 ##########################################################################
-# Copyright (C) 2015 welpo
+# Copyright (C) 2016 welpo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -680,7 +680,10 @@ for input in "$@"; do
       if [[ "$quiet" == 1 ]]; then
         zq=" -q"
       fi
-      zip -r0$zq - -- "$input" > "$local_directory"/"$output_name""$extension" || continue
+      # cd into the directory to avoid copying the entire structure
+      cd "$input"
+      zip -r0$zq - -- ../"${input##*/}" > "$local_directory"/"$output_name""$extension" || continue
+      cd -
     else
       extension=""
       random
