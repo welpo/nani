@@ -21,6 +21,13 @@ set -e
 # Get the script name
 script_name="$script_name"
 
+# Try to import settings from ~/.config/nani/nanirc or /etc/nanirc
+# use -r to see if the file is readable
+if [[ -r "$HOME/.config/$script_name" ]]; then
+  source "$HOME/.config/$script_name"
+elif [[ -r "/etc/nanirc" ]]; then
+  source /etc/nanirc
+else
 # if neither exists, use the config stored in the script
 ############################# BEGIN CONFIGURATION #############################
 
@@ -96,6 +103,7 @@ pushbullet_token=''
 pushover_key=''
 
 ############################## END CONFIGURATION ##############################
+fi
 
 # Create random string of characters (upper and lowercase + numbers) for the output filename
 random ()
