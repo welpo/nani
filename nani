@@ -18,15 +18,19 @@ set -e
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ##########################################################################
 
+# Get the script name
+script_name="$script_name"
+
+# if neither exists, use the config stored in the script
 ############################# BEGIN CONFIGURATION #############################
 
 # Local directory where files will be stored (should be inside your public_html folder):
 # Do NOT use a trailing slash
-local_directory="$HOME/www/$(whoami).$(hostname -f)/public_html/${0##*/}"
+local_directory="$HOME/www/$(whoami).$(hostname -f)/public_html/$script_name"
 
 # URL format (example: https://yoursite.com/nani)
 # Do NOT use a trailing slash
-url_format="https://$(hostname -f)/$(whoami)/${0##*/}"
+url_format="https://$(hostname -f)/$(whoami)/$script_name"
 
 # Create hard links instead of new copies? Default is 1 (Yes)
 # Can be reverted by using the -a, --alias flag.
@@ -270,7 +274,7 @@ cleanvar ()
 showhelp ()
 {
   echo
-  echo "Usage: ${0##*/} [options] <infile>"
+  echo "Usage: $script_name [options] <infile>"
   echo "Provides public URL from input."
   echo
   echo "Input handling:"
@@ -281,22 +285,22 @@ showhelp ()
   echo "    URL to video (e.g: youtube)     Downloaded using youtube-dl"
   echo "    Other URLs                      Downloaded using wget"
   echo
-  echo "Modify the first lines of the script to change how ${0##*/} behaves: quiet mode,"
+  echo "Modify the first lines of the script to change how $script_name behaves: quiet mode,"
   echo "enabling/disabling transcoding, length of the string, extension truncation..."
   echo
   echo "Settings and options:"
   echo "    -a, --alias      Revert the hard link setting"
-  echo "    -c, --cleanup    Remove all files on /${0##*/}/ except index.html"
+  echo "    -c, --cleanup    Remove all files on /$script_name/ except index.html"
   echo "    -h, --help       Display this help and exit"
   echo "    -i, --insert     Open nano to enter text. Saved in output directory as .txt"
-  echo "    -k, --keep       Output dir becomes /${0##*/}/k/, to set different cleanup rules"
-  echo "    -l, --list       List files in output directory /${0##*/}/"
-  echo "    -n, --name       Use custom name (e.g. ${0##*/} -n DesiredName <file>)"
+  echo "    -k, --keep       Output dir becomes /$script_name/k/, to set different cleanup rules"
+  echo "    -l, --list       List files in output directory /$script_name/"
+  echo "    -n, --name       Use custom name (e.g. $script_name -n DesiredName <file>)"
   echo "    -N, --notify     Revert the notify option"
   echo "    -o, --original   Preserve original file name"
   echo "    -p, --push       Send push notification"
   echo "    -q, --quiet      Revert the quiet setting"
-  echo "    -s, --string     Force a certain string length (e.g. ${0##*/} -s 32 <file>)"
+  echo "    -s, --string     Force a certain string length (e.g. $script_name -s 32 <file>)"
   echo "    -t, --transcode  Revert the transcode setting"
   echo "    -x, --xclip      Revert the xclip setting"
   echo "    -y, --symbolic   Create a symbolic link for files and directories"
@@ -331,7 +335,7 @@ while :; do
       printf "Files in $local_directory/:\n\n"
       ls --color=auto "$local_directory"
       extension=".zip"
-      printf "\nRun ${0##*/} -c or ${0##*/} --cleanup to remove all files except index.html\n"
+      printf "\nRun $script_name -c or $script_name --cleanup to remove all files except index.html\n"
       exit
       ;;
     --name=?*)
@@ -585,7 +589,7 @@ if ! [[ -t 0 ]]; then
   clipboard
   exit
 elif [[ "$#" -lt 1 ]]; then
-  printf "Usage:\n  ${0##*/} [options] <infile>\n\nFor more information try\n  ${0##*/} --help\n"
+  printf "Usage:\n  $script_name [options] <infile>\n\nFor more information try\n  $script_name --help\n"
   exit 1
 fi
 
