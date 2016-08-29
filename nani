@@ -695,7 +695,7 @@ for input in "$@"; do
       # cd into the directory to avoid copying the entire structure
       cd "$input"
       zip -r0$zq - -- ../"${input##*/}" > "$local_directory"/"$output_name""$extension" || continue
-      cd -
+      cd - > /dev/null
     else
       extension=""
       random
