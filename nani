@@ -648,7 +648,7 @@ for input in "$@"; do
   # Check if /nani/ already contains a hard link to input to  provide URL directly
   if [[ -z "$output_name" ]]; then
     file_inode=$(ls -id -- "$input" | cut -f1 -d " ")
-    inode_match=$(find "$local_directory" -type f -inum "$file_inode" -exec basename {} \; -quit)
+    inode_match=$(find "$local_directory" -maxdepth 1 -mindepth 1 -type f -inum "$file_inode" -exec basename {} \; -quit)
     if [[ -n "$inode_match" ]]; then
       # When using -n or -o, ignore the inode match unless name is the same
       if [[ -z "$preserve_name" || "$inode_match" == $(basename -- "$input") ]]; then
