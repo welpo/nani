@@ -694,7 +694,11 @@ for input in "$@"; do
       fi
       # cd into the directory to avoid copying the entire structure
       cd "$input"
-      zip -r0$zq - -- ../"${input##*/}" > "$local_directory"/"$output_name""$extension" || continue
+      # Remove trailing slashes to avoid problems with zip and parameter expansion
+      if [[ "${input: -1}" == "/" ]]; then
+        input=$(echo "$input" | rev | cut -c 2- | rev)
+      fi
+      zip -r0$zq - -- "../${input##*/}" > "$local_directory"/"$output_name""$extension" || continue
       cd - > /dev/null
     else
       extension=""
