@@ -19,7 +19,11 @@ You will need a properly set up web server of your choosing (like Apache, IIS or
 # Install
 * Place `nani` somewhere in your PATH, like `~/bin`
 * Make it executable: `chmod +x nani`
-* Modify the `local_directory` (the path to your web server site) and `url_format` (the URL that refers to this path) variables in the first lines of the script.
+
+## Mandatory configuration
+Either by modifying the first lines of the script or changing `nanirc`:
+* Set the `local_directory` variable to the public path in your webserver (e.g. `/var/www/site/nani`). The users using nani must have write permissions to this folder (you can do `sudo chown [username] /var/www/site/nani`)
+* Set the `url_format` (the URL that refers to this path) variables in the first lines of the script (e.g. `https://example.com/nani`)
 
 **Optional**
 
@@ -36,7 +40,7 @@ To share a picture (or any other file) in your server you would run:
 
 The output would be a URL referring to the file (which `nani` would have copied, hard linked or symbolic linked):
 
-`https://yoururl.me/nani/oThot0b.png`
+`https://example.com/nani/oThot0b.png`
 
 To share a directory with files you would run this:
 
@@ -44,7 +48,7 @@ To share a directory with files you would run this:
 
 and `nani` would return a URL to the zipped contents of that directory, like:
 
-`https://yoururl.me/nani/iE4RWE.zip`
+`https://example.com/nani/iE4RWE.zip`
 
 If you want to keep the name of the input, you can use the `-o`, `--original` flag, so: `nani -o Path/To/Directory`. Read more about the available flags at the bottom of this page.
 
@@ -53,12 +57,12 @@ Different files will be processed differently (for example it can transcode .fla
 # Input handling
 `nani` will process input based on its nature:
 
-- **Directory**: A zip file will be created in the output directory (default). It's also possible to create a symbolic link to browse the files inside. (e.g. input: `nani Directory/` output: `https://yoururl.me/nani/62WlrM.zip`)
-- **FLAC**: Can be transcoded to MP3 (e.g. input: `nani "01 - Title.flac"` output: `https://yoururl.me/nani/nO0A5v.mp3`)
-- **Text** (`html`, `php`...): Extension can be set to `.txt` (e.g. input: `nani index.php` output: `https://yoururl.me/nani/4PwTwgL.txt`)
-- **Other files**: New copy/hard link/symbolic link at output directory (e.g. input: `nani movie.mkv` output: `https://yoururl.me/nani/ki3msYn.mkv`)
-- **URL to video** (e.g: youtube): Downloaded using [youtube-dl](https://github.com/rg3/youtube-dl) (e.g. input: `nani https://www.youtube.com/watch?v=p4cJv6s_Yjw` output: `https://yoururl.me/nani/uhpPcm.mp4`)
-- **Other URLs**: Downloaded using wget (e.g. input: `nani https://www.gnu.org/distros/free-distros.html` output: `https://yoururl.me/nani/o80togB.html`)
+- **Directory**: A zip file will be created in the output directory (default). It's also possible to create a symbolic link to browse the files inside. (e.g. input: `nani Directory/` output: `https://example.com/nani/62WlrM.zip`)
+- **FLAC**: Can be transcoded to MP3 (e.g. input: `nani "01 - Title.flac"` output: `https://example.com/nani/nO0A5v.mp3`)
+- **Text** (`html`, `php`...): Extension can be set to `.txt` (e.g. input: `nani index.php` output: `https://example.com/nani/4PwTwgL.txt`)
+- **Other files**: New copy/hard link/symbolic link at output directory (e.g. input: `nani movie.mkv` output: `https://example.com/nani/ki3msYn.mkv`)
+- **URL to video** (e.g: youtube): Downloaded using [youtube-dl](https://github.com/rg3/youtube-dl) (e.g. input: `nani https://www.youtube.com/watch?v=p4cJv6s_Yjw` output: `https://example.com/nani/uhpPcm.mp4`)
+- **Other URLs**: Downloaded using wget (e.g. input: `nani https://www.gnu.org/distros/free-distros.html` output: `https://example.com/nani/o80togB.html`)
 
 # Settings
 To modify these settings modify the script file, `nani`, using your favourite text editor.
