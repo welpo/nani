@@ -13,8 +13,8 @@ You will need a properly set up web server of your choosing (like Apache, IIS or
 * `xclip` to get the URL to your local clipboard
 * [exiftool](http://owl.phy.queensu.ca/~phil/exiftool/) to remove metadata from certain files (`pdf`, `jpg`, `png`, `mp4`...) — this will only happen when a new copy is created (so when alias=0).
 * [optipng](http://optipng.sourceforge.net/) to losslessly compress `png`, `bmp`, `gif`, `pnm` and `tiff` files — this will only happen when a new copy is created (so when alias=0).
-* `notify-send` to get a local notification (useful if used in a desktop)
-* `paplay` to play a notification sound after the upload is done
+* `notify-send` to get a local notification (useful if used in a desktop).
+* `paplay` to play a notification sound after the upload is done.
 
 # Install
 * Place `nani` somewhere in your PATH, like `~/bin`
@@ -22,8 +22,9 @@ You will need a properly set up web server of your choosing (like Apache, IIS or
 
 ## Mandatory configuration
 Either by modifying the first lines of the script or changing `nanirc`:
-* Set the `local_directory` variable to the public path in your webserver (e.g. `/var/www/site/nani`). The users using nani must have write permissions to this folder (you can do `sudo chown [username] /var/www/site/nani`)
-* Set the `url_format` (the URL that refers to this path) variables in the first lines of the script (e.g. `https://example.com/nani`)
+* Set the `local_directory` variable to the public path in your webserver (e.g. `/var/www/site/nani`). The users using nani must have write permissions to this folder (you can do `sudo chown [username] /var/www/site/nani` and `sudo chmod 755 /var/www/site/nani`);
+* Add the user that will use `nani` to your webserver's user's group. For example, nginx runs as the `www-data` user and group. Thus, you need to add your user to this group so that it can serve its files: `sudo usermod -a -G www-data [username]`;
+* Set the `url_format` (the URL that refers to this path) variables in the first lines of the script (e.g. `https://example.com/nani`).
 
 **Optional**
 
