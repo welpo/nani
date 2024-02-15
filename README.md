@@ -6,7 +6,7 @@
     <img src="https://img.shields.io/github/languages/top/welpo/nani?style=flat-square&labelColor=202b2d&color=47605a" alt="Top language"></a>
     <img src="https://img.shields.io/github/languages/code-size/welpo/nani?style=flat-square&labelColor=202b2d&color=47605a" alt="Code size"></a>
     <br>
-    <a href="https://github.com/welpo/nani">
+    <a href="https://github.com/welpo/git-sumi">
         <img src="https://img.shields.io/badge/clean_commits-git--sumi-0?style=flat-square&labelColor=202b2d&color=47605a" alt="Clean commits"></a>
     <a href="https://github.com/welpo/nani/blob/main/COPYING">
         <img src="https://img.shields.io/github/license/welpo/nani?style=flat-square&labelColor=202b2d&color=47605a" alt="License"></a>
